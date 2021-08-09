@@ -1,4 +1,11 @@
 $ms-cell-size: 40px !default;
+$ms-board-width-easy: calc(#{$ms-cell-size} * 8);
+$ms-board-width-medium: calc(#{$ms-cell-size} * 16);
+$ms-board-width-hard: calc(#{$ms-cell-size} * 30);
+
+$ms-board-height-easy: calc(#{$ms-cell-size} * 8);
+$ms-board-height-medium: calc(#{$ms-cell-size} * 16);
+$ms-board-height-hard: calc(#{$ms-cell-size} * 16);
 
 .row {
     justify-content: center;
@@ -9,8 +16,16 @@ $ms-cell-size: 40px !default;
     }
 
     &__scoreboard {
+        &--easy{
+            width: $ms-board-width-easy;
+        }
+        &--medium{
+            width: $ms-board-width-medium;
+        }
+        &--hard{
+            width: $ms-board-width-hard;
+        }
         height: calc(#{$ms-cell-size} * 1.5);
-        width: calc(#{$ms-cell-size} * 10);
         background: #4b4a43;
         display: flex;
         flex-direction: row;
@@ -48,13 +63,22 @@ $ms-cell-size: 40px !default;
     }
 
     &__container {
-        width: calc(#{$ms-cell-size} * 10);
-        height: calc(#{$ms-cell-size} * 10);
+        &--easy{
+            width: $ms-board-width-easy;
+            height: $ms-board-height-easy;
+        }
+        &--medium{
+            width: $ms-board-width-medium;
+            height: $ms-board-height-medium;
+        }
+        &--hard{
+            width: $ms-board-width-hard;
+            height: $ms-board-height-hard;
+        }
         background-color: #dcd6bc;
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        //border: 10px solid #dcd6bc;
 
         .welcome, .playAgain{
             position: absolute;
@@ -66,7 +90,6 @@ $ms-cell-size: 40px !default;
     &__cell {
         width: $ms-cell-size;
         height: $ms-cell-size;
-        //background: #42A948;
         border: 5px solid;
         border-color: #f5f3eb #bab7a9 #bab7a9 #fff9db;
         box-sizing: border-box;
@@ -80,6 +103,9 @@ $ms-cell-size: 40px !default;
         }
 
         &.revealed.isBomb {
+            background: red;
+        }
+        &.isBomb {
             background: red;
         }
 

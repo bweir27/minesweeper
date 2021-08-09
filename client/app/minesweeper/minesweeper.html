@@ -8,7 +8,7 @@
                     <div class="score__display">{{ '00000'}}</div>
                 </div>
                 <div class="pause">
-                    <button class="pause__btn" (click)="pauseGame()">
+                    <button class="pause__btn" (click)="togglePause()">
                         <fa-icon [icon]="icons.pause"></fa-icon>
                     </button>
                     <div class="flagCount">
@@ -22,27 +22,38 @@
                     <div class="time__display">{{gameElapsedTime}}</div>
                 </div>
             </div>
-            <div class="game__container minesweeper__container">
+            <div class="game__container minesweeper__container" id="gameContainer">
                 <button class="welcome" *ngIf="!gameStarted" (click)="startGame()">Start Game</button>
+                <!--                TODO: make better endgame display-->
                 <div class="playAgain" *ngIf="isGameOver">
-                    <p class="gameEndMessage" *ngIf="checkForGameWin()">Congrats! You've won!</p>
-                    <p class="gameEndMessage" *ngIf="checkForGameLoss()">BOOM! Sorry, you lose.</p>
+                    <p class="gameEndMessage" *ngIf="isGameOver && isGameWon">Congrats! You've won!</p>
+                    <p class="gameEndMessage" *ngIf="isGameOver && !isGameWon">BOOM! Sorry, you lose.</p>
                     <button class="playAgain-btn" *ngIf="isGameOver" (click)="startGame()">Play Again</button>
                 </div>
 
-                <div class="minesweeper__cell"
-                     *ngFor="let cell of gameCells"
-                     [id]="cell.id"
-                     [class.revealed]="cell.isRevealed"
-                     [class.isBomb]="cell.isBomb"
-                     (contextmenu)="toggleFlag(cell, $event)"
-                     (click)="clickCell(cell)">
-                    <b *ngIf="cell.isRevealed && !cell.isBomb && cell.neighborBombs > 0">{{cell.neighborBombs}}</b>
-                    <fa-icon [icon]="icons.bomb" *ngIf="cell.isRevealed && cell.isBomb"></fa-icon>
-                    <ms-flag *ngIf="!cell.isRevealed && cell.isFlagged" class="flag minesweeper__cell--flag"></ms-flag>
-                    <!--            <b>{{cell.id}}</b>-->
-                    <!--            {{cell.neighborBombs}}-->
-                </div>
+                <ng-container *ngIf="isPaused">
+                    <div [classList]="'pauseOverlay pauseOverlay--${{GAME_DIFFICULTY}}'">
+                        <h2>Paused</h2>
+                        <button (click)="togglePause()">Resume</button>
+                    </div>
+                </ng-container>
+
+                <ng-container *ngIf="!isPaused">
+                    <div class="minesweeper__cell"
+                         *ngFor="let cell of gameCells"
+                         [id]="cell.id"
+                         name="cell"
+                         [class.revealed]="cell.isRevealed"
+                         (contextmenu)="toggleFlag(cell, $event)"
+                         (click)="clickCell(cell)"
+                         [style]="cell.isBomb && cell.isRevealed ? 'background: red' : 'background: inherit'">
+                        <b *ngIf="cell.isRevealed && !cell.isBomb && cell.neighborBombs > 0">{{cell.neighborBombs}}</b>
+                        <fa-icon [icon]="icons.bomb" *ngIf="cell.isRevealed && cell.isBomb"></fa-icon>
+                        <ms-flag *ngIf="!cell.isRevealed && cell.isFlagged" class="flag minesweeper__cell--flag"></ms-flag>
+                        <!--            <b>{{cell.id}}</b>-->
+                        <!--            {{cell.neighborBombs}}-->
+                    </div>
+                </ng-container>
             </div>
         </div>
     </div>

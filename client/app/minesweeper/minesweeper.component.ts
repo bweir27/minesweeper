@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import { MineSweeperCell } from '../../components/types/minesweeper/cell';
 import {
     faBomb,
@@ -16,21 +16,38 @@ import moment from 'moment';
     styleUrls: ['./minesweeper.scss'],
 })
 export class MineSweeperComponent implements OnInit, OnDestroy {
+    @Input('difficulty') GAME_DIFFICULTY: 'easy' | 'medium' | 'hard' = 'hard';
 
     CELL_SIZE = 40;
-    CELLS_PER_ROW = 10;
-    NUM_ROWS = 10;
-    GAME_DIFFICULTY: 'easy' | 'medium' | 'hard' = 'easy';
-    NUM_BOMBS = {
-        easy: 10,
-        medium: 20,
+    CELLS_PER_ROW = {
+        easy: 8,
+        medium: 16,
         hard: 30
+    };
+
+    NUM_ROWS = {
+        easy: 8,
+        medium: 16,
+        hard: 16
+    };
+
+    NUM_BOMBS = {
+        easy: 15,
+        medium: 40,
+        hard: 99
     };
 
     gameCells: MineSweeperCell[] = [];
     gameStarted = false;
     isGameOver = false;
+    isGameWon: boolean;
+    isPaused: boolean;
+    pauseGameState: any;
     numFlags: number;
+    numSafeCellsRevealed = 0;
+    cellsPerRow: number = this.CELLS_PER_ROW[this.GAME_DIFFICULTY];
+    numRows: number = this.NUM_ROWS[this.GAME_DIFFICULTY];
+    numBombs: number = this.NUM_BOMBS[this.GAME_DIFFICULTY];
 
     icons = {
         bomb: faBomb,
@@ -39,14 +56,23 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
 
     // time: Date = new Date();
     gameStartTime = moment();
-    gameElapsedTime;
+    gameElapsedTime = 0;
     timeSubscription: Subscription;
 
     constructor() {
         this.createGameBoard();
     }
 
-    ngOnInit() { }
+    ngOnInit() {
+        this.numFlags = this.numBombs;
+        this.numSafeCellsRevealed = 0;
+        const board = document.getElementsByClassName('minesweeper__container')[0];
+        const scoreboard = document.getElementsByClassName('minesweeper__scoreboard')[0];
+        if(board && scoreboard) {
+            scoreboard.classList.add(`minesweeper__scoreboard--${this.GAME_DIFFICULTY}`);
+            board.classList.add(`minesweeper__container--${this.GAME_DIFFICULTY}`);
+        }
+    }
 
     ngOnDestroy(): void {
         if(this.timeSubscription) this.timeSubscription.unsubscribe();
@@ -55,8 +81,10 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     startGame() {
         this.gameStarted = true;
         this.isGameOver = false;
+        this.isPaused = false;
         this.gameStartTime = moment();
-        this.numFlags = this.NUM_BOMBS[this.GAME_DIFFICULTY];
+        this.numFlags = this.numBombs;
+        this.numSafeCellsRevealed = 0;
         // Using RxJS Timer
         this.timeSubscription = timer(0, 1000)
             .pipe(
@@ -84,13 +112,22 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         };
     }
 
-    pauseGame() {
-        // console.log('pause');
+    togglePause() {
+        if(!this.gameStarted || this.isGameOver) return;
+
+        //TODO: stop/resume timer
+        if(!this.isPaused) {
+            console.log('pause');
+        } else {
+            console.log('unpause');
+        }
+        this.isPaused = !this.isPaused;
     }
 
     createGameBoard() {
+        const gameSetup = this.getGameboardDimensions();
         //create the game cells
-        let safeCells: MineSweeperCell[] = Array((this.CELLS_PER_ROW * this.NUM_ROWS) - this.NUM_BOMBS[this.GAME_DIFFICULTY])
+        let safeCells: MineSweeperCell[] = Array((gameSetup.rows * gameSetup.cols) - gameSetup.numBombs)
             .fill({
                     id: 0,
                     isRevealed: false,
@@ -98,7 +135,7 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
                     isFlagged: false,
                     neighborBombs: 0,
                 });
-        let bombs: MineSweeperCell[] = Array(this.NUM_BOMBS[this.GAME_DIFFICULTY])
+        let bombs: MineSweeperCell[] = Array(gameSetup.numBombs)
             .fill({
                 id: 0,
                 isRevealed: false,
@@ -108,11 +145,14 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
             });
         //join the safeCells & bombs to become gameCells, shuffle them, and update their index to reflect their position
         this.gameCells = safeCells.concat(bombs)
+            //shuffle bombs around
             .sort(() => Math.random() - 0.5)
+            //initialize id to be consistent with index / position on board
             .map((c, index) => {
-                //ensure center 9 cells are empty
                 return { ...c, id: index};
             });
+
+        // this.clearCenterCells(this.gameCells);
 
         this.initNeighborBombCount();
     }
@@ -130,33 +170,25 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     clickCell(cell: MineSweeperCell) {
         if(!this.gameStarted || this.isGameOver) return;
         if(cell.isRevealed || cell.isFlagged) return;
+        // console.log(cell);
         if(cell.isBomb) {
             this.displayGameLost();
         } else {
             cell.isRevealed = true;
+            this.numSafeCellsRevealed++;
             if(cell.neighborBombs > 0) {
                 let elem = document.getElementById(`${cell.id}`);
                 elem.classList.add(this.mapNumToWord(cell.neighborBombs));
-                // elem.innerHTML = String(cell.neighborBombs);
+                this.isGameOver = this.checkGameOver(cell);
                 return;
             }
             this.checkCell(cell);
+            this.isGameOver = this.checkGameOver(cell);
         }
         cell.isRevealed = true;
     }
 
-    toggleFlag(cell: MineSweeperCell, ev: Event) {
-        ev.preventDefault();
-        if(this.isGameOver) return;
-        if(!cell.isFlagged && this.numFlags > 0) {
-            this.numFlags --;
-            this.gameCells[cell.id].isFlagged = true;
-        } else {
-            this.numFlags++;
-            this.gameCells[cell.id].isFlagged = false;
-        }
-    }
-    //check neighboring cells once cell is clicked
+    //check neighboring cells once cell with 0 neighborBombs is clicked
     checkCell(cell: MineSweeperCell) {
         const neighbors = this.getCellNeighbors(cell);
         setTimeout(() => {
@@ -169,32 +201,44 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         }, 10);
     }
 
+    toggleFlag(cell: MineSweeperCell, ev: Event) {
+        ev.preventDefault();
+        if(this.isGameOver) return;
+        if(!cell.isFlagged && this.numFlags > 0) {
+            this.numFlags --;
+            this.gameCells[cell.id].isFlagged = true;
+        } else {
+            this.numFlags++;
+            this.gameCells[cell.id].isFlagged = false;
+        }
+        // this.isGameOver = this.checkGameOver(cell);
+    }
+
+
+    // ===== end game functions =====
+
     checkGameOver(cell: MineSweeperCell): boolean {
         //check for loss
-        if(cell.isBomb) {
+        if(cell.isBomb && !cell.isFlagged) {
             this.displayGameLost();
             return true;
-        } else if(this.checkForGameWin()) {
+        } else if(!cell.isBomb && this.checkForGameWin()) {
             this.displayGameWon();
             return true;
         }
         return false;
     }
+
     displayGameLost() {
-    //    TODO: make result display
         this.isGameOver = true;
-        const elem = document.getElementById('gameEndMessage');
-        console.log(elem);
-        if(elem) elem.innerHTML = 'BOOM! You Lost!';
+        this.isGameWon = false;
         console.log('Game Lost');
         this.revealBombs();
     }
 
     displayGameWon() {
         this.isGameOver = true;
-        const elem = document.querySelector('p#gameEndMessage.gameEndMessage');
-        console.log(elem);
-        if(elem) elem.innerHTML = 'Congrats! You Won!';
+        this.isGameWon = true;
         console.log('Game Won!');
         this.revealBombs();
     }
@@ -202,23 +246,31 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     //show all the bombs that have not already been revealed or flagged
     revealBombs() {
         if(this.timeSubscription) this.timeSubscription.unsubscribe();
-        // console.log('revealing bombs');
         this.gameCells.forEach(c => {
             if(c.isBomb && !c.isFlagged) c.isRevealed = true;
         });
     }
 
-    checkForGameLoss(): boolean {
-        return this.gameCells.filter(c => c.isBomb).some(c => c.isRevealed);
-    }
+    // checkForGameLoss(): boolean {
+    //     return !this.isGameOver && this.gameCells.filter(c => c.isBomb).some(c => c.isRevealed);
+    // }
+
     checkForGameWin(): boolean {
-        return this.gameCells
-            .filter(c => !c.isBomb && c.isRevealed).length
-            === this.gameCells.length - this.NUM_BOMBS[this.GAME_DIFFICULTY];
+        return this.numSafeCellsRevealed === this.gameCells.length - this.NUM_BOMBS[this.GAME_DIFFICULTY];
+        // return this.gameCells
+        //     .filter(c => !c.isBomb && c.isRevealed).length
+        //     === this.gameCells.length - this.NUM_BOMBS[this.GAME_DIFFICULTY];
     }
 
 
     //helpers
+    getGameboardDimensions(): {rows: number, cols: number, numBombs: number} {
+        return {
+            rows: this.NUM_ROWS[this.GAME_DIFFICULTY],
+            cols: this.CELLS_PER_ROW[this.GAME_DIFFICULTY],
+            numBombs: this.NUM_BOMBS[this.GAME_DIFFICULTY]
+        };
+    }
     getCellNeighbors(cell: MineSweeperCell) {
         return {
             north: this.getCellNorthOf(cell),
@@ -233,31 +285,32 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     }
     getCellNorthOf(cell: MineSweeperCell): MineSweeperCell {
         if (!cell) return undefined;
-        const isTopEdge = cell.id < this.CELLS_PER_ROW;
+        const isTopEdge = cell.id < this.CELLS_PER_ROW[this.GAME_DIFFICULTY];
         return !isTopEdge
-            ? this.gameCells[cell.id - this.CELLS_PER_ROW] : undefined;
+            ? this.gameCells[cell.id - this.CELLS_PER_ROW[this.GAME_DIFFICULTY]] : undefined;
     }
     getCellSouthOf(cell: MineSweeperCell): MineSweeperCell {
         if (!cell) return undefined;
-        const isBottomEdge = cell.id > this.gameCells.length - this.CELLS_PER_ROW;
+        const isBottomEdge = cell.id > this.gameCells.length - this.cellsPerRow;
         return !isBottomEdge
-            ? this.gameCells[cell.id + this.CELLS_PER_ROW] : undefined;
+            ? this.gameCells[cell.id + this.cellsPerRow] : undefined;
     }
     getCellEastOf(cell: MineSweeperCell): MineSweeperCell {
         if (!cell) return undefined;
-        const isRightEdge = cell.id % this.CELLS_PER_ROW === this.CELLS_PER_ROW - 1;
+        const isRightEdge = cell.id % this.cellsPerRow === this.cellsPerRow - 1;
         return !isRightEdge
             ? this.gameCells[cell.id + 1] : undefined;
     }
     getCellWestOf(cell: MineSweeperCell): MineSweeperCell {
         if (!cell) return undefined;
-        const isLeftEdge = (cell.id > 0 && cell.id % this.CELLS_PER_ROW === 0);
+        const isLeftEdge = (cell.id > 0 && cell.id % this.cellsPerRow === 0);
         return !isLeftEdge
             ? this.gameCells[cell.id - 1] : undefined;
     }
 
     mapNumToWord(num: number) {
         return {
+            0: '',
             1: 'one',
             2: 'two',
             3: 'three',
