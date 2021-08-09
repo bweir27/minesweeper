@@ -58,6 +58,7 @@
         "pino": "^6.5.1",
         "pino-noir": "^2.2.1",
         "pino-pretty": "^4.1.0",
+        "popper.js": "^1.16.1",
         "rxjs-compat": "6",
         "sanitize-html": "^2.4.0",
         "serve-favicon": "^2.5.0",
