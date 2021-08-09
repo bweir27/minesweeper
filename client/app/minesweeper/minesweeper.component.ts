@@ -22,9 +22,9 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     NUM_ROWS = 10;
     GAME_DIFFICULTY: 'easy' | 'medium' | 'hard' = 'easy';
     NUM_BOMBS = {
-        easy: 20,
-        medium: 30,
-        hard: 40
+        easy: 10,
+        medium: 20,
+        hard: 30
     };
 
     gameCells: MineSweeperCell[] = [];
