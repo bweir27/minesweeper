@@ -1,0 +1,28 @@
+/**
+ * Main Site colors
+ */
+$primary-color: #1561AD !default; //Used for Footer and Highlighted Header Text
+$secondary-color: #1DBAB4 !default; //Used for Buttons, topnav.a:hover highlight (taken from logo animation)
+$button-color: $secondary-color !default;
+$tufts-blue: #4E94D1 !default; // Used for Main > About Row Background
+$pale-cerulean: #95BFE4 !default; // Used for Main > Resource Row Background
+$white: #FAFAFA !default; //Used for topnav and white background (.standard-div-white)
+$orange: #FC5226 !default; //The orange for What's New area Text
+$text-white: $white !default;
+$light-gray: #E5E5E5 !default; // Used for light-gray background (.standard-div-light-gray)
+$light-grey: $light-gray !default;
+$dark-text-color: #333333 !default; // Used for main black(ish) text
+$inactive-link-color: #CCCCCC !default; // (light gray) Used for topnav and footer links
+
+/*
+ *  Accent colors
+ */
+
+$green: #42A948 !default; // Used for valid form
+$dark-red: #A94442 !default; // Used for invalid form field
+
+/**
+ * Font variables
+ */
+$fa-font-path: '/assets/fonts/font-awesome/';
+$icon-font-path: '~bootstrap-icons/icons';

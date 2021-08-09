@@ -1,0 +1,35 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": ".",
+        "experimentalDecorators": true,
+        "sourceMap": true,
+        "rootDir": "./",
+        "module": "esnext",
+        "outDir": ".tmp",
+        "removeComments": false,
+        "target": "es6",
+        "skipLibCheck": true,
+        "moduleResolution": "node",
+        "lib": [
+            "es2016",
+            "es2017",
+            "dom"
+        ]
+    },
+    "complilerOptions": {
+        "types": ["googlemaps"]
+    },
+    "typeRoots": [
+        "./node_modules/@types/"
+    ],
+    "exclude": [
+        "node_modules",
+        "client/**/*.spec.ts",
+        "dist"
+    ],
+    "include": [
+        "client/**/*.ts"
+    ]
+}

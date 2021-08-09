@@ -1,0 +1,107 @@
+$ms-cell-size: 40px !default;
+
+.row {
+    justify-content: center;
+}
+.minesweeper {
+    &__game{
+        margin-top: 20px;
+    }
+
+    &__scoreboard {
+        height: calc(#{$ms-cell-size} * 1.5);
+        width: calc(#{$ms-cell-size} * 10);
+        background: #4b4a43;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-around;
+        align-items: center;
+        padding: 5px;
+        gap: 10px;
+        .time, .score{
+            width: 35%;
+            height: 90%;
+            background-color: black;
+            color: red;
+        }
+        .pause{
+            height: 100%;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            .flagCount {
+                display: flex;
+                flex-direction: row;
+                width: 100%;
+                height: auto;
+                .flag{
+                    width: 50%;
+                }
+                &--count{
+                    width: 50%;
+                    color: white;
+                }
+            }
+        }
+    }
+
+    &__container {
+        width: calc(#{$ms-cell-size} * 10);
+        height: calc(#{$ms-cell-size} * 10);
+        background-color: #dcd6bc;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        //border: 10px solid #dcd6bc;
+
+        .welcome, .playAgain{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+        }
+    }
+
+    &__cell {
+        width: $ms-cell-size;
+        height: $ms-cell-size;
+        //background: #42A948;
+        border: 5px solid;
+        border-color: #f5f3eb #bab7a9 #bab7a9 #fff9db;
+        box-sizing: border-box;
+        font-size: 25px;
+        text-align: center;
+        font-family: 'Roboto Mono', monospace;
+        &.revealed {
+            border: 2px solid #9c998d;
+            background-color: #cecab7;
+            box-sizing: border-box;
+        }
+
+        &.revealed.isBomb {
+            background: red;
+        }
+
+        &.one {
+            color: #e76346;
+        }
+
+        &.two {
+            color: #4199d3;
+        }
+
+        &.three {
+            color: #57da59;
+        }
+
+        &.four{
+            color: #bb41d3;
+        }
+    }
+
+    &__cell--flag, .flag{
+        width: $ms-cell-size;
+        height: $ms-cell-size;
+    }
+}

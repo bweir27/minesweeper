@@ -1,0 +1,45 @@
+@import "~bootstrap/scss/bootstrap";
+@import '~font-awesome/scss/font-awesome';
+@import '~@angular/material/prebuilt-themes/indigo-pink.css';
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,900|Roboto:300,500,700,900);
+@import url(https://fonts.googleapis.com/icon?family=Material+Icons);
+
+/**
+ * App-wide Styles
+ */
+@import 'typography'; //typography
+
+html, body { min-height: 100vh; height: 100%; font-size: 14px}
+body { margin: 0; }
+
+.browserupgrade {
+  margin: 0.2em 0;
+  background: $light-gray;
+  color: #000;
+  padding: 0.2em 0;
+}
+
+.navbar-text {
+    margin-left: 15px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.ng-valid[required], .ng-valid.required  {
+  border-left: 5px solid $green; /* green */
+}
+
+.ng-invalid:not(form)  {
+  border-left: 5px solid $dark-red; /* red */
+}
+
+button{
+    border: none;
+    outline: none;
+}
+
+button:focus{
+    outline: none !important;
+}

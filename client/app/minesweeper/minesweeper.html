@@ -1,0 +1,49 @@
+<div class="container">
+    <div class="row">
+        <div class="minesweeper__game">
+            <div class="game__scoreboard minesweeper__scoreboard">
+                <div class="score">
+                    <span class="score__label">Score:</span>
+                    <div class="score__display">{{gameScore || '00000'}}</div>
+                </div>
+                <div class="pause">
+                    <button class="pause__btn" (click)="pauseGame()">
+                        <fa-icon [icon]="icons.pause"></fa-icon>
+                    </button>
+                    <div class="flagCount">
+                        <ms-flag class="flag"></ms-flag>
+                        <span class="flagCount--count">{{numFlags}} </span>
+                    </div>
+
+                </div>
+                <div class="time">
+                    <span class="time__label">Time:</span>
+                    <div class="time__display">{{gameElapsedTime}}</div>
+                </div>
+            </div>
+            <div class="game__container minesweeper__container">
+                <button class="welcome" *ngIf="!gameStarted" (click)="startGame()">Start Game</button>
+                <div class="playAgain" *ngIf="isGameOver">
+                    <p class="gameEndMessage" *ngIf="checkForGameWin()">Congrats! You've won!</p>
+                    <p class="gameEndMessage" *ngIf="checkForGameLoss()">BOOM! Sorry, you lose.</p>
+                    <button class="playAgain-btn" *ngIf="isGameOver" (click)="startGame()">Play Again</button>
+                </div>
+
+                <div class="minesweeper__cell"
+                     *ngFor="let cell of gameCells"
+                     [id]="cell.id"
+                     [class.revealed]="cell.isRevealed"
+                     [class.isBomb]="cell.isBomb"
+                     (contextmenu)="toggleFlag(cell, $event)"
+                     (click)="clickCell(cell)">
+                    <b *ngIf="cell.isRevealed && !cell.isBomb && cell.neighborBombs > 0">{{cell.neighborBombs}}</b>
+                    <fa-icon [icon]="icons.bomb" *ngIf="cell.isRevealed && cell.isBomb"></fa-icon>
+                    <ms-flag *ngIf="!cell.isRevealed && cell.isFlagged" class="flag minesweeper__cell--flag"></ms-flag>
+                    <!--            <b>{{cell.id}}</b>-->
+                    <!--            {{cell.neighborBombs}}-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

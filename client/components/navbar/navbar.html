@@ -1,0 +1,77 @@
+<!--<nav class="navbar navbar-expand-xl fixed-top navbar-light" role="navigation">-->
+<!--    <a class="isolated-icon navbar-brand" routerLink="/home">-->
+<!--        <img src="../../assets/images/isolated_icon2.gif" alt="Health Equity Colorado" class="pull-left">-->
+<!--    </a>-->
+
+<!--    <a class="full-icon navbar-brand" routerLink="/home">-->
+<!--        <img src="../../assets/images/HECEOBLogo2.gif" alt="Health Equity Colorado" class="pull-left">-->
+<!--    </a>-->
+
+<!--    <button class="navbar-toggler" type="button" data-toggle="collapse" (click)="toggleDropdownNavbarVisibility()">-->
+<!--        <span class="navbar-toggler-icon"></span>-->
+<!--    </button>-->
+
+
+<!--    <div class="collapse navbar-collapse" id="navbar-collapse" [collapse]="isCollapsed" [isAnimated]="true">-->
+<!--        <ul class="navbar-nav">-->
+<!--            <li *ngFor="let item of menu" routerLinkActive="active" class="nav-item">-->
+<!--                <a routerLink="{{item.link}}" (click)="toggleDropdownNavbarVisibility()">-->
+<!--                    {{item.title}}-->
+<!--                </a>-->
+<!--            </li>-->
+<!--            <li class="nav-item" dropdown id="about-dropdown" [class.btn-group.dropdown]="navbarIsExpanded()">-->
+<!--                <a id="about-button" dropdownToggle type="button" class="dropdown-toggle"-->
+<!--                   aria-controls="about-dropdown-list">-->
+<!--                    ABOUT <span class="caret"></span>-->
+<!--                </a>-->
+<!--                <ul id="about-dropdown-list" *dropdownMenu class="dropdown-menu about-dropdown-menu"-->
+<!--                    role="menu" aria-labelledby="button-basic">-->
+<!--                    <li role="menuitem">-->
+<!--                        <a class="dropdown-item" routerLink="/about" (click)="toggleDropdownNavbarVisibility()">-->
+<!--                            About-->
+<!--                        </a>-->
+<!--                    </li>-->
+<!--                    <li role="menuitem">-->
+<!--                        <a class="dropdown-item" routerLink="/tech-team" (click)="toggleDropdownNavbarVisibility()">-->
+<!--                            Tech Team-->
+<!--                        </a>-->
+<!--                    </li>-->
+<!--                </ul>-->
+<!--&lt;!&ndash;                <div class="btn-group nav-item" dropdown>&ndash;&gt;-->
+<!--&lt;!&ndash;                    &ndash;&gt;-->
+<!--&lt;!&ndash;                </div>&ndash;&gt;-->
+<!--            </li>-->
+<!--&lt;!&ndash;            TODO: When logged in, show link to "Account" (likely a dropdown menu).-->
+<!--                        Will likely need to change collapse/expand breakpoints  &ndash;&gt;-->
+<!--            <li [hidden]="isLoggedIn" routerLinkActive="active" class="nav-item">-->
+<!--&lt;!&ndash;                <a routerLink="/login" (click)="toggleDropdownNavbarVisibility()">LOGIN</a>&ndash;&gt;-->
+<!--                <a (click)="login()">LOGIN</a>-->
+<!--            </li>-->
+
+<!--            <li [hidden]="!isLoggedIn" class="nav-item" dropdown [class.btn-group.dropdown]="navbarIsExpanded()">-->
+<!--                <a id="account-button" dropdownToggle type="button" class="dropdown-toggle"-->
+<!--                   aria-controls="account-dropdown">-->
+<!--                    ACCOUNT <span class="caret"></span>-->
+<!--                </a>-->
+<!--                <ul id="account-dropdown" *dropdownMenu class="dropdown-menu" role="menu" aria-labelledby="account-button">-->
+<!--                    <li [hidden]="!isAdmin" role="menuitem">-->
+<!--                        <a class="dropdown-item" routerLink="/admin" (click)="toggleDropdownNavbarVisibility()">ADMIN</a>-->
+<!--                    </li>-->
+<!--                    <li [hidden]="!isLoggedIn">-->
+<!--                        <a class="dropdown-item" routerLink="/create-organization" (click)="toggleDropdownNavbarVisibility()">ADD ORGANIZATION</a>-->
+<!--                    </li>-->
+<!--                    <li class="divider dropdown-divider"></li>-->
+<!--                    <li [hidden]="!isLoggedIn">-->
+<!--                        <a class="dropdown-item" (click)="toggleDropdownNavbarVisibility(); logout()">LOG OUT</a>-->
+<!--                    </li>-->
+<!--                </ul>-->
+<!--&lt;!&ndash;                <div class="btn-group nav-item" dropdown>&ndash;&gt;-->
+<!--&lt;!&ndash;                    &ndash;&gt;-->
+<!--&lt;!&ndash;                </div>&ndash;&gt;-->
+<!--            </li>-->
+<!--            <li class="nav-item">-->
+<!--                <a routerLink="/contact" (click)="toggleDropdownNavbarVisibility()">FEEDBACK</a>-->
+<!--            </li>-->
+<!--        </ul>-->
+<!--    </div>-->
+<!--</nav>-->

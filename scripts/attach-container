@@ -1,0 +1,2 @@
+#!/bin/sh
+docker exec -it brianweirdev-minesweeper-nodejs /bin/bash
