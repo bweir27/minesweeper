@@ -1,3 +1,6 @@
+// Extra small devices (portrait phones, less than 576px)
+// No media query since this is the default in Bootstrap
+
 $ms-cell-size: 40px !default;
 $ms-board-width-easy: calc(#{$ms-cell-size} * 8);
 $ms-board-width-medium: calc(#{$ms-cell-size} * 16);
@@ -109,6 +112,13 @@ $ms-board-height-hard: calc(#{$ms-cell-size} * 16);
             background: red;
         }
 
+        &.isCorner {
+            background: green;
+        }
+        &.isCorner.isBomb{
+            background: purple;
+        }
+
         &.one {
             color: #e76346;
         }
@@ -124,6 +134,18 @@ $ms-board-height-hard: calc(#{$ms-cell-size} * 16);
         &.four{
             color: #bb41d3;
         }
+        &.five {
+            color: #76150E;
+        }
+        &.six {
+            color: #377E80;
+        }
+        &.seven {
+            color: #000000;
+        }
+        &.eight {
+            color: #808080;
+        }
     }
 
     &__cell--flag, .flag{
@@ -131,3 +153,15 @@ $ms-board-height-hard: calc(#{$ms-cell-size} * 16);
         height: $ms-cell-size;
     }
 }
+
+// Small devices (landscape phones, 576px and up)
+@media (min-width: 576px) {  }
+
+// Medium devices (tablets, 768px and up)
+@media (min-width: 768px) {  }
+
+// Large devices (desktops, 992px and up)
+@media (min-width: 992px) {  }
+
+// Extra large devices (large desktops, 1200px and up)
+@media (min-width: 1200px) {  }
