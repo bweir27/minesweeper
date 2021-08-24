@@ -32,7 +32,6 @@ export function urlParse(url) {
         // eslint-disable-next-line no-self-assign
         a.href = a.href;
     }
-
     return a;
 }
 
@@ -61,53 +60,41 @@ export function isSameOrigin(url, origins) {
     return origins.length >= 1;
 }
 
+export function randomInRange(min: number, max: number) {
+    var r = Math.random();
+    return min + r * (max - min);
+}
+
 /**
- *
- * @param {String} num  - inputted phone number from user
- * @return {String} - normalized phone number as string
+ * shuffle: Fisher-Yates (Knuth) shuffle as provided by:
+ *  https://bost.ocks.org/mike/shuffle/
+ * @param array
  */
-export function phoneNormalization(num: string) {
-    let numArr: string[] = [];
-    // scrub string into an array of only numbers
-    let i = 0;
-    while(i < num.length) {
-        if(/^\d+$/.test(num.charAt(i))) {
-            numArr[numArr.length] = num.charAt(i);
-        }
-        i++;
-    }
-    // base - just return the user input
-    let normal = num;
+export function shuffle(array: any[]) {
+    var currentIndex = array.length,  randomIndex;
 
-    // first three digits is the area code
-    if(numArr.length >= 3) {
-        normal = '(' + numArr[0] + numArr[1] + numArr[2] + ')';
-    }
+    // While there remain elements to shuffle...
+    while (currentIndex !== 0) {
 
-    // add the next three digits if they exist
-    if(numArr.length >= 4) {
-        let j = 3;
-        while(j < numArr.length && j < 6) {
-            normal += numArr[j];
-            j++;
-        }
-    }
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
 
-    // add '-' after first 6 digits
-    if(numArr.length >= 6) {
-        normal += '-';
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
     }
+    return array;
+}
 
-    // add and limit the last 4 digits
-    if(numArr.length >= 7) {
-        let k = 6;
-        while(k < numArr.length && k < 10) {
-            normal += numArr[k];
-            k++;
-        }
-    }
 
-    return normal;
+/**
+ * a filter function that filters out duplicate values
+ * @param value
+ * @param index
+ * @param self
+ */
+export function onlyUniqueFilter(value, index, self) {
+    return self.indexOf(value) === index;
 }
 
 // STRING NORMALIZATION FUNCTIONS

@@ -127,14 +127,6 @@
             background-color: #cecab7;
             box-sizing: border-box;
             cursor: default;
-
-            -webkit-touch-callout: none; /* iOS Safari */
-            -webkit-user-select: none; /* Safari */
-            -khtml-user-select: none; /* Konqueror HTML */
-            -moz-user-select: none; /* Old versions of Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                              supported by Chrome, Edge, Opera and Firefox */
         }
 
         &.revealed.isBomb { background: red }
@@ -146,7 +138,6 @@
         &.isCorner { background: green }
 
         &.isCorner.isBomb { background: purple }
-
         &.one { color: #e76346 }
         &.two { color: #4199d3 }
         &.three { color: #57da59 }

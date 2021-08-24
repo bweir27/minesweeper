@@ -5,13 +5,14 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {RouterModule, Routes} from '@angular/router';
 
 import {TooltipModule} from 'ngx-bootstrap/tooltip';
-import {MineSweeperComponent} from './minesweeper.component';
+import {MineSweeperTwoComponent} from './minesweeper.component';
 import {MinesweeperFlagIconComponent} from '../../assets/icons/minesweeper/minesweeperFlag';
+import { SassHelperComponent } from './SassHelper/sass-helper.component';
 
 export const ROUTES: Routes = [
     {
-        path: 'minesweeper',
-        component: MineSweeperComponent,
+        path: 'minesweeperTwo',
+        component: MineSweeperTwoComponent,
     },
 ];
 
@@ -25,13 +26,15 @@ export const ROUTES: Routes = [
         FontAwesomeModule
     ],
     declarations: [
-        MineSweeperComponent,
+        MineSweeperTwoComponent,
         MinesweeperFlagIconComponent,
+        SassHelperComponent,
     ],
 
     exports: [
-        MineSweeperComponent,
+        MineSweeperTwoComponent,
         MinesweeperFlagIconComponent,
+        SassHelperComponent
     ],
 })
 export class MinesweeperModule { }

@@ -1,19 +1,19 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {defaultCell, MineSweeperCell} from '../../components/types/minesweeper/cell';
 import {faBomb, faPause} from '@fortawesome/free-solid-svg-icons';
+import {SassHelperComponent} from './SassHelper/sass-helper.component';
 import {GameConfig} from './GameConfig';
 import {getCellEastOf, getCellNorthOf, getCellSouthOf, getCellWestOf} from './helpers';
 import Heap from '../../components/interfaces/Heap';
-import {shuffle} from '../../components/util';
-
+import {shuffle, uniform} from '../../components/util';
 type DIFFICULTY_OPTIONS = 'easy' | 'medium' | 'hard';
 
 @Component({
-    selector: 'minesweeper',
+    selector: 'minesweeperTwo',
     templateUrl: './minesweeper.html',
     styleUrls: ['./minesweeper.scss'],
 })
-export class MineSweeperComponent implements OnInit, OnDestroy {
+export class MineSweeperTwoComponent implements OnInit, OnDestroy {
     @Input('difficulty') GAME_DIFFICULTY: DIFFICULTY_OPTIONS = 'medium';
 
     difficultyOptions: DIFFICULTY_OPTIONS[] = ['easy', 'medium', 'hard'];
@@ -37,7 +37,7 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         easy: 15, //60 used for first-click bomb-relocation testing
         medium: 40,
         hard: 99,
-        // hard: 470
+        // hard: 478
     };
 
     cascadeAnimationDuration = 10;
@@ -63,6 +63,11 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     gameElapsedTime = 0;
     interval;
     timeSubscription: any;
+
+    private sassHelper: SassHelperComponent;
+    @ViewChild(SassHelperComponent, {static: true}) set sasshelper(sh: SassHelperComponent) {
+        this.sassHelper = sh;
+    }
 
     constructor() {
         this.createGameBoard();
@@ -141,19 +146,22 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     createGameBoard(): MineSweeperCell[] {
         const gameSetup = this.getGameboardDimensions();
         const numCells = gameSetup.numRows * gameSetup.numCols;
-        let positionOptions = shuffle(Array.from(Array(gameSetup.numRows * gameSetup.cellsPerRow).keys()));
+        let postionOptions = shuffle(Array.from(Array(gameSetup.numRows * gameSetup.cellsPerRow).keys()));
         //create the game cells
         let safeCells = Array((gameSetup.numRows * gameSetup.numCols) - gameSetup.numBombs).fill({...defaultCell, isBomb: false});
         let bombs = Array(gameSetup.numBombs).fill(({...defaultCell, isBomb: true}));
         //join the safeCells & bombs to become gameCells, shuffle them, and update their index to reflect their position
         let gameCells = safeCells.concat(bombs)
-            .map((c, index) => ({ ...c, id: positionOptions.pop()}))
+            // .fill({...defaultCell, isBomb: true} as MineSweeperCell, (numCells - gameSetup.numBombs), numCells)
+            //shuffle bombs around, then sort by id
+            .map((c, index) => ({ ...c, id: postionOptions.pop()}))
             .sort((a, b) => a.id - b.id);
             // uncomment this for first-click bomb-relocation testing (ensure bombs start in corners)
             // .map(c => {
             //     if (this.isCorner(c)) return {...c, isBomb: true};
             //     return {...c, isBomb: c.isBomb};
             // });
+        console.log('gameCells: ', gameCells);
         return this.initNeighborBombCount(gameCells);
     }
 
@@ -223,7 +231,7 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     ensureFirstClickCascade(allCells: MineSweeperCell[], clickedCell: MineSweeperCell): MineSweeperCell[] {
         let cells = [...allCells];
         const clickedCellId = clickedCell.id;
-        const selfIsBomb = cells[clickedCellId].isBomb;
+        let selfIsBomb = cells[clickedCellId].isBomb;
         let checkCorners = true;
 
         let neighbors = Object.values(this.getCellNeighbors(allCells, clickedCell)).filter(c => !!c);
@@ -239,7 +247,7 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
             }
             cells = this.relocateBomb(cells, node, checkCorners);
 
-            neighbors = Object.values(this.getCellNeighbors(cells, cells[clickedCellId])).filter(c => !!c && !c.isFlagged);
+            neighbors = Object.values(this.getCellNeighbors(cells, cells[clickedCellId])).filter(c => !!c);
             neighborsHasBomb = neighbors.some(c => c.isBomb);
         }
         return cells;
@@ -287,9 +295,10 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
             swapCell = viableCells[cellId];
         }
         gameBoard = this.swapCells(gameBoard, clickedCell, swapCell);
+        const gameBoardSorted = this.isSorted(gameBoard);
+        console.log('isSorted: ', gameBoardSorted);
         return gameBoard;
     }
-
 
     isCorner(cell: MineSweeperCell, config?: GameConfig) {
         if(!config) config = this.getGameboardDimensions();
@@ -336,7 +345,6 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         // this.revealBombs(cell);
         // this.revealBombs2(cell);
         this.animateRevealBombs(cell);
-        // this.revealBombs3(cell);
         this.pauseTimer();
     }
 
@@ -392,19 +400,21 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
      */
 
     animateRevealBombs(cell: MineSweeperCell) {
-        // var heap = this.revealBombs2(cell).clone();
-        // heap.heapify();
-        var heap = this.revealBombs3(cell);
+        var heap = this.revealBombs2(cell).clone();
+        heap.heapify();
         let i = 0;
         let delay = this.cascadeAnimationDuration;
-        let interval = 50;
 
-        // while(!heap.isEmpty()) {
-        while(heap.length > 0) {
+        while(!heap.isEmpty()) {
             const c = heap.pop();
             i += 1;
             if( c && c.isBomb && !c.isFlagged ) {
-                this.revealCell(c, delay + (interval * i));
+                // delay += (delay < 1000) ? 10 : 0;
+                if (delay < 150) delay += 10;
+                // setTimeout(() => {
+                //     this.gameCells[c.id].isRevealed = true;
+                // }, this.cascadeAnimationDuration * i);
+                this.revealCell(c, delay);
             }
         }
     }
@@ -490,15 +500,6 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         return animationList;
     }
 
-    revealBombs3(startCell: MineSweeperCell): any[] {
-        this.reInitCellIdsAndLocation(this.gameCells);
-        return this.gameCells.filter(c => c.isBomb && !c.isFlagged)
-            .sort((a, b) => {
-                let distToA = this.distanceBetweenCells(startCell, a);
-                let distToB = this.distanceBetweenCells(startCell, b);
-                return distToB - distToA;
-            });
-    }
     checkForGameWin(): boolean {
         return this.numSafeCellsRevealed === this.gameCells.length - this.NUM_BOMBS[this.GAME_DIFFICULTY];
     }
@@ -526,6 +527,30 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
             southwest: getCellWestOf(cellList, getCellSouthOf(cellList, cell, config), config),
             northwest: getCellWestOf(cellList, getCellNorthOf(cellList, cell, config), config)
         };
+    }
+
+    getCellExtendedNeighbors(allCells: MineSweeperCell[], cell: MineSweeperCell, distance: number, config?: GameConfig) {
+        const abs = Math.abs;
+        const SQRT2 = Math.SQRT2;
+        let neighbors = Object.values(this.getCellNeighbors(allCells, cell))
+            .filter(c => c!!)
+            .map(c => {
+                const coords = this.getCellCoords({index: c.id});
+                return Object.assign(c, {...c, ...coords});
+            });
+        return allCells
+            .map(c => {
+                if (c.x || c.y) {
+                    let coords = this.getCellCoords({index: c.id});
+                    c.x = coords.x;
+                    c.y = coords.y;
+                    // [c.x, c.y]  = [coords.x, coords.y];
+                }
+                return c;
+            })
+            .filter(c => {
+                const dist = ((c.x - cell.x === 0 || c.y - cell.y === 0) ? 1 : SQRT2);
+            });
     }
 
     /**
@@ -684,14 +709,5 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
                 y: coords.y
             };
         });
-    }
-
-    distanceBetweenCells(cellA: MineSweeperCell, cellB: MineSweeperCell): number {
-        let coordsA = this.getCellCoords({cell: cellA});
-        let coordsB = this.getCellCoords({cell: cellB});
-
-        let x = coordsA.x - coordsB.x;
-        let y = coordsA.y - coordsB.y;
-        return Math.sqrt((x * x) + (y * y));
     }
 }

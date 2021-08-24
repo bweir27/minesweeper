@@ -1,0 +1,30 @@
+$ms-cell-size: 40px !default;
+$ms-board-width-easy: calc(#{$ms-cell-size} * 8);
+$ms-board-width-medium: calc(#{$ms-cell-size} * 16);
+$ms-board-width-hard: calc(#{$ms-cell-size} * 30);
+
+$ms-board-height-easy: calc(#{$ms-cell-size} * 8);
+$ms-board-height-medium: calc(#{$ms-cell-size} * 16);
+$ms-board-height-hard: calc(#{$ms-cell-size} * 16);
+
+$num-letters-home-header: 0;
+
+:export {
+    //ms-cell-size: $ms-cell-size;
+    //ms-board-width-easy: $ms-board-width-easy;
+    //ms-board-width-medium: $ms-board-width-medium;
+    //ms-board-width-hard: $ms-board-width-hard;
+    //ms-board-height-easy: $ms-board-height-easy;
+    //ms-board-height-medium: $ms-board-height-medium;
+    //ms-board-height-hard: $ms-board-height-hard;
+    //
+    //numLettersHomeHeader: $num-letters-home-header;
+    msCellSize: $ms-cell-size;
+    msBoardWidthEasy: $ms-board-width-easy;
+    msBoardWidthMedium: $ms-board-width-medium;
+    msBoardWidthHard: $ms-board-width-hard;
+    msBoardHeightEasy: $ms-board-height-easy;
+    msBoardHeightMedium: $ms-board-height-medium;
+    msBoardHeightHard: $ms-board-height-hard;
+    numLettersHomeHeader: $num-letters-home-header;
+}

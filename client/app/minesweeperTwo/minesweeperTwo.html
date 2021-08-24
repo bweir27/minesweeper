@@ -67,11 +67,11 @@
 <!--                        [ngClass]="getCellClasses(cell)"-->
 <!--                        [style]="cell.isBomb && cell.isRevealed ? 'background: red' : 'background: inherit'"-->
 <!--                        use ngIf instead of z-index to prevent inspection using devTools -->
-<!--                        <b *ngIf="cell.neighborBombs > 0">{{cell.neighborBombs}}</b>-->
-                            <b *ngIf="cell.isRevealed && !cell.isBomb && cell.neighborBombs > 0">{{cell.neighborBombs}}</b>
-<!--                        <fa-icon class="bombIcon" [icon]="icons.bomb" *ngIf="cell.isBomb && !cell.isFlagged"></fa-icon>-->
-<!--                        <small>{{cell.passedNum > 0 ? cell.passedNum : '0'}}</small>-->
-                        <fa-icon class="bombIcon" [icon]="icons.bomb" *ngIf="cell.isRevealed && cell.isBomb"></fa-icon>
+                        <b *ngIf="cell.neighborBombs > 0">{{cell.neighborBombs}}</b>
+<!--                            <b *ngIf="cell.isRevealed && !cell.isBomb && cell.neighborBombs > 0">{{cell.neighborBombs}}</b>-->
+                        <fa-icon class="bombIcon" [icon]="icons.bomb" *ngIf="cell.isBomb && !cell.isFlagged"></fa-icon>
+                        <small>{{cell.passedNum > 0 ? cell.passedNum : '0'}}</small>
+<!--                        <fa-icon class="bombIcon" [icon]="icons.bomb" *ngIf="cell.isRevealed && cell.isBomb"></fa-icon>-->
                         <ms-flag *ngIf="!cell.isRevealed && cell.isFlagged" class="flag minesweeper__cell--flag"></ms-flag>
                         <!--            <b>{{cell.id}}</b>-->
                         <!--            {{cell.neighborBombs}}-->
@@ -81,4 +81,5 @@
         </div>
     </div>
 </div>
+<sass-helper></sass-helper>
 
