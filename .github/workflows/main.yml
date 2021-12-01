@@ -39,6 +39,7 @@ jobs:
         # Steps represent a sequence of tasks that will be executed as part of the job
         steps:
             - run: npm install -g gulp
+            - run: yarn add gulp
             - run: yarn install
             - run: gulp build
 
