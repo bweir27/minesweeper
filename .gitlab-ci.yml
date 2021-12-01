@@ -21,10 +21,10 @@ test:
 #    - npm test:e2e
   services:
     - name: mongo:4
-      alias: mongodb-healthequity
+      alias: mongodb-bw-minesweeper
       entrypoint: ['mongod', '--bind_ip', '0.0.0.0']
   variables:
-    MONGODB_URI: 'mongodb://mongodb-healthequity/healthequity-test'
+    MONGODB_URI: 'mongodb://mongodb-bw-minesweeper/minesweeper-test'
     NODE_ENV: 'test'
 
 build:
@@ -45,12 +45,12 @@ develop:
   script:
     - cd dist
     - git init
-    - git config user.name "GitLab CI/CD"
-    - git config user.email "daniel.pittman@du.edu"
-    - git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/brianweirdevminesweeper-colorado-devel.git
+    - git config user.name "GitHub CI/CD"
+    - git config user.email "bweir27@gmail.com"
+    - git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/brianweirdevminesweeper-devel.git
     - git add .
     - git reset -- client/stats.json
-    - git commit -m "GitLab CI Build"
+    - git commit -m "GitHub CI Build"
     - git push -f heroku master
   only:
     - develop
@@ -63,11 +63,11 @@ production:
     - cd dist
     - git init
     - git config user.name "GitLab CI/CD"
-    - git config user.email "daniel.pittman@du.edu"
-    - git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/brianweirdevminesweeper-colorado-prod.git
+    - git config user.email "bweir27@gmail.com"
+    - git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/brianweirdevminesweeper-prod.git
     - git add .
     - git reset -- client/stats.json
-    - git commit -m "GitLab CI Build"
+    - git commit -m "GitHub CI Build"
     - git push -f heroku master
   only:
     - master
