@@ -57,7 +57,7 @@
 
                 <ng-container *ngIf="!isPaused && gameStarted">
                     <div class="minesweeper__cell"
-                         *ngFor="let cell of gameCells"
+                         *ngFor="let cell of gameGrid.cells"
                          [id]="cell.id"
                          name="cell"
                          [ngClass]="getCellClasses(cell)"
@@ -69,7 +69,7 @@
 <!--                        use ngIf instead of z-index to prevent inspection using devTools -->
                         <b *ngIf="cell.neighborBombs > 0">{{cell.neighborBombs}}</b>
 <!--                            <b *ngIf="cell.isRevealed && !cell.isBomb && cell.neighborBombs > 0">{{cell.neighborBombs}}</b>-->
-                        <fa-icon class="bombIcon" [icon]="icons.bomb" *ngIf="cell.isBomb && !cell.isFlagged"></fa-icon>
+                        <fa-icon class="bombIcon" [icon]="icons.bomb" *ngIf="gameGrid.isMine(cell.id) && !cell.isFlagged"></fa-icon>
                         <small>{{cell.passedNum > 0 ? cell.passedNum : '0'}}</small>
 <!--                        <fa-icon class="bombIcon" [icon]="icons.bomb" *ngIf="cell.isRevealed && cell.isBomb"></fa-icon>-->
                         <ms-flag *ngIf="!cell.isRevealed && cell.isFlagged" class="flag minesweeper__cell--flag"></ms-flag>
@@ -81,5 +81,4 @@
         </div>
     </div>
 </div>
-<sass-helper></sass-helper>
 

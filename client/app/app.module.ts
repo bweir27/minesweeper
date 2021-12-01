@@ -8,6 +8,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
 import { MinesweeperModule } from './minesweeper/minesweeper.module';
+import { MinesweeperTwoModule } from './minesweeperTwo/minesweeperTwo.module';
 import { DirectivesModule } from '../components/directives.module';
 import { JwtModule } from '@auth0/angular-jwt';
 
@@ -46,6 +47,7 @@ const appRoutes: Routes = [
             enableTracing: process.env.NODE_ENV === 'development'
         }),
         MinesweeperModule,
+        MinesweeperTwoModule,
         DirectivesModule,
     ],
     declarations: [AppComponent],

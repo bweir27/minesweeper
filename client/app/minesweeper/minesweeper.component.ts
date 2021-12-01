@@ -255,7 +255,7 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
      * @param { MineSweeperCell }   clickedCell
      * @param { boolean }           checkCorners
      */
-    private relocateBomb(allCells: MineSweeperCell[], clickedCell: MineSweeperCell, checkCorners: boolean = true): MineSweeperCell[] {
+    private relocateBomb(allCells: MineSweeperCell[], clickedCell: MineSweeperCell, checkCorners = true): MineSweeperCell[] {
         if(!clickedCell.isBomb || !this.isFirstClick) return allCells;
 
         let gameBoard = [...allCells];
