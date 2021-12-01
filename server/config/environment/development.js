@@ -8,7 +8,7 @@ module.exports = _.merge({
     // MongoDB connection options
     mongo: {
         useMongoClient: true,
-        uri: 'mongodb://brianweirdevminesweeper-mongodb/brianweirdevminesweeper-dev'
+        uri: 'mongodb://brianweirdev-minesweeper-mongodb/brianweirdevminesweeper-dev'
     },
     // Secret for session, you will want to change this and make it an environment variable
     secrets: {
