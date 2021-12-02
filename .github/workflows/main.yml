@@ -38,7 +38,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                  name: my-artifact
-                 paths: dist/
+                 path: dist/
                  retention-days: 5
 
     build:
@@ -48,17 +48,22 @@ jobs:
 
         steps:
 #            - working-directory: ./node_modules
+            - name: 'Download Artifact'
+              uses: actions/download-artifact@v2
+              with:
+                  name: my-artifact
+                  path: dist
              - run: |
                 npm install -g gulp
                 yarn install
                 yarn add gulp
                 pwd
                 gulp build
-             - name: 'Upload Artifact'
-               uses: actions/download-artifact@v2
-               with:
-                 name: my-artifact
-                 paths: dist/
+#             - name: 'Upload Artifact'
+#               uses: actions/download-artifact@v2
+#               with:
+#                 name: my-artifact
+#                 paths: dist/
 
 
     deploy:
