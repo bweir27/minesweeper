@@ -44,6 +44,8 @@ jobs:
             - run: |
                 npm install -g gulp
                 yarn install
+                yarn add gulp
+                pwd
                 gulp build
 
     deploy:
