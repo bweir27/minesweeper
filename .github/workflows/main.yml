@@ -13,9 +13,9 @@ on:
     # Allows you to run this workflow manually from the Actions tab
     workflow_dispatch:
 
-defaults:
-    run:
-        working-directory: ~/node_modules/
+#defaults:
+#    run:
+#        working-directory: ./node_modules
 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -34,6 +34,12 @@ jobs:
             # Runs a single command using the runners shell
             - name: Yarn Install
               run: yarn install
+            - name: 'Upload Artifact'
+              uses: actions/upload-artifact@v2
+              with:
+                 name: my-artifact
+                 paths: dist/
+                 retention-days: 5
 
     build:
         container: node:14-stretch
@@ -41,12 +47,19 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - run: |
+#            - working-directory: ./node_modules
+             - run: |
                 npm install -g gulp
                 yarn install
                 yarn add gulp
                 pwd
                 gulp build
+             - name: 'Upload Artifact'
+               uses: actions/download-artifact@v2
+               with:
+                 name: my-artifact
+                 paths: dist/
+
 
     deploy:
         runs-on: ubuntu-latest
