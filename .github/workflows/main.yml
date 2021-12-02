@@ -47,7 +47,6 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-#            - working-directory: ./node_modules
             - name: 'Download Artifact'
               uses: actions/download-artifact@v2
               with:
@@ -59,11 +58,6 @@ jobs:
                 yarn add gulp
                 pwd
                 gulp build
-#             - name: 'Upload Artifact'
-#               uses: actions/download-artifact@v2
-#               with:
-#                 name: my-artifact
-#                 paths: dist/
 
 
     deploy:
