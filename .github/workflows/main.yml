@@ -34,7 +34,7 @@ jobs:
             # Runs a single command using the runners shell
             - name: Yarn Install
               run: yarn install
-            - run: gulp build
+#            - run: gulp build
             - name: 'Upload Artifact'
               uses: actions/upload-artifact@v2
               with:
@@ -56,8 +56,6 @@ jobs:
             - run: |
                 npm install -g gulp
                 yarn install
-                yarn add gulp
-                pwd
                 gulp build
 
 
