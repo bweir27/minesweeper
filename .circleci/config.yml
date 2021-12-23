@@ -27,6 +27,8 @@ jobs:
           # If you are using yarn, change the line below from "npm" to "yarn"
           pkg-manager: yarn
       - run: |
+          yarn add gulp
+          yarn install
           gulp build
       # - run:
       #     name: Run tests
