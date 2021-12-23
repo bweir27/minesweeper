@@ -48,6 +48,7 @@ jobs:
         needs: test
         runs-on: ubuntu-latest
         steps:
+            - uses: actions/checkout@v2
             - run: |
                 pwd
                 npm install -g gulp
@@ -59,7 +60,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                 name: my-artifact
-                path: dist/
+                path: dist
                 retention-days: 5
 
 
