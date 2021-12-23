@@ -48,11 +48,11 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: 'Download Artifact'
-              uses: actions/download-artifact@v2
-              with:
-                  name: my-artifact
-                  path: dist/
+#            - name: 'Download Artifact'
+#              uses: actions/download-artifact@v2
+#              with:
+#                  name: my-artifact
+#                  path: dist/
             - run: |
                 npm install -g gulp
                 yarn install
