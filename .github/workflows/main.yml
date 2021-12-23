@@ -20,6 +20,16 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+    cache:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Cache node modules
+              uses: actions/cache@v2
+              with:
+                  -path: ~/.npm
+                  key: v1-npm-deps-${ hashFiles('**/yarn.lock') }}
+                  restore-keys: v1-npm-deps-
+
     # This workflow contains a single job called "build"
     test:
         container: node:14-stretch
