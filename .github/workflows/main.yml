@@ -49,13 +49,12 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
-            - run: |
-                pwd
-                npm install -g gulp
-                yarn add gulp
-                yarn install
-                pwd
-                gulp build
+            - run: pwd
+            - run: npm install -g gulp
+            - run: yarn add gulp
+            - run: yarn install
+            - run: pwd
+            - run: gulp build
             - name: Upload Artifact
               uses: actions/upload-artifact@v2
               with:
