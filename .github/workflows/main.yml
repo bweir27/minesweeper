@@ -65,7 +65,9 @@ jobs:
 #                  path: dist/
             - run: |
                 npm install -g gulp
+                yarn add gulp
                 yarn install
+                pwd
                 gulp build
 
 
