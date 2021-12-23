@@ -11,7 +11,7 @@ import lazypipe from 'lazypipe';
 import nodemon from 'nodemon';
 import {Server as KarmaServer} from 'karma';
 import runSequence from 'run-sequence';
-import series from 'gulp';
+// import series from 'gulp';
 import {protractor, webdriver_update} from 'gulp-protractor';
 import {Instrumenter} from 'isparta';
 import webpack from 'webpack';
@@ -183,7 +183,7 @@ gulp.task('env:prod', () => {
  ********************/
 
 gulp.task('inject', cb => {
-    series(['inject:scss'], cb);
+    gulp.series(['inject:scss'], cb);
 });
 
 gulp.task('inject:scss', () => {
@@ -240,7 +240,7 @@ gulp.task('transpile:server', () => {
         .pipe(gulp.dest(`${paths.dist}/${serverPath}`));
 });
 
-gulp.task('lint:scripts', cb => series(['lint:scripts:client', 'lint:scripts:server'], cb));
+gulp.task('lint:scripts', cb => gulp.series(['lint:scripts:client', 'lint:scripts:server'], cb));
 
 gulp.task('lint:scripts:client', () => {
     return gulp.src(_.union(
@@ -289,11 +289,11 @@ gulp.task('start:server:debug', () => {
 });
 
 gulp.task('test', cb => {
-    return series('test:server', 'test:client', cb);
+    return gulp.series('test:server', 'test:client', cb);
 });
 
 gulp.task('test:server', cb => {
-    series(
+    gulp.series(
         'env:all',
         'env:test',
         'mocha:unit',
@@ -312,7 +312,7 @@ gulp.task('mocha:integration', () => {
 });
 
 gulp.task('test:server:coverage', cb => {
-    series('coverage:pre',
+    gulp.series('coverage:pre',
               'env:all',
               'env:test',
               'coverage:unit',
@@ -357,7 +357,7 @@ gulp.task('test:e2e:execute', cb => {
         .on('end', () => { process.exit() })
 });
 gulp.task('test:e2e', cb => {
-    series(
+    gulp.series(
         'build',
         'env:all',
         'env:test',
@@ -383,7 +383,7 @@ gulp.task('test:client', done => {
  ********************/
 
 gulp.task('build', cb => {
-    series(
+    gulp.series(
         'env:prod',
         [
             'clean:dist',
