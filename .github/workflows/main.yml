@@ -49,6 +49,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - run: |
+                pwd
                 npm install -g gulp
                 yarn add gulp
                 yarn install
