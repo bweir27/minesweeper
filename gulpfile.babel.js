@@ -10,8 +10,8 @@ import http from 'http';
 import lazypipe from 'lazypipe';
 import nodemon from 'nodemon';
 import {Server as KarmaServer} from 'karma';
-import runSequence from 'run-sequence';
-// import series from 'gulp';
+// import runSequence from 'run-sequence';
+import runSequence from 'gulp4-run-sequence';
 import {protractor, webdriver_update} from 'gulp-protractor';
 import {Instrumenter} from 'isparta';
 import webpack from 'webpack';
@@ -183,7 +183,7 @@ gulp.task('env:prod', () => {
  ********************/
 
 gulp.task('inject', cb => {
-    gulp.series(['inject:scss'], cb);
+    gulp.parallel(['inject:scss'], cb);
 });
 
 gulp.task('inject:scss', () => {
@@ -240,7 +240,7 @@ gulp.task('transpile:server', () => {
         .pipe(gulp.dest(`${paths.dist}/${serverPath}`));
 });
 
-gulp.task('lint:scripts', cb => gulp.series(['lint:scripts:client', 'lint:scripts:server'], cb));
+gulp.task('lint:scripts', cb => gulp.parallel(['lint:scripts:client', 'lint:scripts:server'], cb));
 
 gulp.task('lint:scripts:client', () => {
     return gulp.src(_.union(
@@ -385,22 +385,22 @@ gulp.task('test:client', done => {
 gulp.task('build', cb => {
     gulp.series(
         'env:prod',
-        [
+        gulp.parallel([
             'clean:dist',
             'clean:tmp'
-        ],
+        ]),
         'inject',
         'transpile:server',
-        [
+        gulp.parallel([
             'build:images'
-        ],
-        [
+        ]),
+        gulp.parallel([
             'copy:extras',
             'copy:assets',
             'copy:fonts:dist',
             'copy:server',
             'webpack:dist'
-        ],
+        ]),
         'revReplaceWebpack',
         cb);
 });
