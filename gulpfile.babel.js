@@ -183,7 +183,7 @@ gulp.task('env:prod', () => {
  ********************/
 
 gulp.task('inject', cb => {
-    gulp.parallel(['inject:scss'], cb);
+    runSequence(['inject:scss'], cb);
 });
 
 gulp.task('inject:scss', () => {
@@ -240,7 +240,7 @@ gulp.task('transpile:server', () => {
         .pipe(gulp.dest(`${paths.dist}/${serverPath}`));
 });
 
-gulp.task('lint:scripts', cb => gulp.parallel(['lint:scripts:client', 'lint:scripts:server'], cb));
+gulp.task('lint:scripts', cb => runSequence(['lint:scripts:client', 'lint:scripts:server'], cb));
 
 gulp.task('lint:scripts:client', () => {
     return gulp.src(_.union(
