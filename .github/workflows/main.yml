@@ -49,11 +49,8 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
-            - run: pwd
             - run: npm install -g gulp
-#            - run: yarn add gulp
             - run: yarn install
-#            - run: pwd
             - run: gulp build
             - name: Upload Artifact
               uses: actions/upload-artifact@v2
@@ -69,6 +66,10 @@ jobs:
         container:
             image: ruby:2
         steps:
+            - name: Download a single artifact
+              uses: actions/download-artifact@v2
+              with:
+                  name: my-artifact
             - run: cd dist
             - run: git init
             - run: git config user.name "GitHub CI/CD"
