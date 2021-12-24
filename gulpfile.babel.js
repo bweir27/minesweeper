@@ -289,11 +289,11 @@ gulp.task('start:server:debug', () => {
 });
 
 gulp.task('test', cb => {
-    return gulp.series('test:server', 'test:client', cb);
+    return runSequence('test:server', 'test:client', cb);
 });
 
 gulp.task('test:server', cb => {
-    gulp.series(
+    runSequence(
         'env:all',
         'env:test',
         'mocha:unit',
@@ -312,7 +312,7 @@ gulp.task('mocha:integration', () => {
 });
 
 gulp.task('test:server:coverage', cb => {
-    gulp.series('coverage:pre',
+    runSequence('coverage:pre',
               'env:all',
               'env:test',
               'coverage:unit',
@@ -357,7 +357,7 @@ gulp.task('test:e2e:execute', cb => {
         .on('end', () => { process.exit() })
 });
 gulp.task('test:e2e', cb => {
-    gulp.series(
+    runSequence(
         'build',
         'env:all',
         'env:test',
@@ -383,24 +383,24 @@ gulp.task('test:client', done => {
  ********************/
 
 gulp.task('build', cb => {
-    gulp.series(
+    runSequence(
         'env:prod',
-        gulp.parallel([
+        [
             'clean:dist',
             'clean:tmp'
-        ]),
+        ],
         'inject',
         'transpile:server',
-        gulp.parallel([
+        [
             'build:images'
-        ]),
-        gulp.parallel([
+        ],
+        [
             'copy:extras',
             'copy:assets',
             'copy:fonts:dist',
             'copy:server',
             'webpack:dist'
-        ]),
+        ],
         'revReplaceWebpack',
         cb);
 });
