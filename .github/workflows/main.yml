@@ -66,10 +66,11 @@ jobs:
         container:
             image: ruby:2
         steps:
-            - name: Download a single artifact
+            - name: Download artifact
               uses: actions/download-artifact@v2
               with:
                   name: my-artifact
+            - run: ls -a
             - run: cd dist
             - run: git init
             - run: git config user.name "GitHub CI/CD"
