@@ -71,7 +71,8 @@ jobs:
               with:
                   name: my-artifact
             - run: pwd
-            - run: ls -a
+            - run: ls -R
+              working-directory: dist
             - run: cd ..
             - run: ls -a
             - run: cd dist
