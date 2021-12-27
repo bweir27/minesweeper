@@ -56,7 +56,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                 name: my-artifact
-                path: dist
+                path: dist/
                 retention-days: 5
 
 
