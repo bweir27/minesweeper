@@ -13,6 +13,12 @@ on:
     # Allows you to run this workflow manually from the Actions tab
     workflow_dispatch:
 
+#set environment variables
+env:
+    HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+    APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+    HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
+
 #defaults:
 #    run:
 #        working-directory: ./node_modules
@@ -70,10 +76,12 @@ jobs:
               uses: actions/download-artifact@v2
               with:
                   name: my-artifact
-#            - name: Login to Heroku Container registry
-#              env:
-#                HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-#              run: heroku container:login
+            - name: Install Heroku Cli
+              run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+            - name: Login to Heroku Container registry
+              env:
+                HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+              run: heroku container:login
             - run: git init
             - run: git config user.name "GitHub CI/CD"
             - run: git config user.email "${{ secrets.HEROKU_EMAIL}}"
@@ -91,4 +99,6 @@ jobs:
 #                heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
 #                heroku_email: ${{ secrets.HEROKU_EMAIL }}
 #                justlogin: true
-            - run: git push -f heroku master
+            - run: |
+                heroku container:login
+                git push -f heroku master
