@@ -1,4 +1,4 @@
-import {MineSweeperCell} from '../../components/types/minesweeper/cell';
+import { MineSweeperCell } from '../../components/types/minesweeper/cell';
 import { GameConfig } from './GameConfig';
 
 export function getCellNorthOf(allCells: MineSweeperCell[], cell: MineSweeperCell, config: GameConfig): any {

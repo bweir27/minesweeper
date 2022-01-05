@@ -48,6 +48,7 @@
                     <button class="playAgain-btn" *ngIf="isGameOver" (click)="gameStarted = false; isGameOver = false">Home</button>
                 </div>
 
+<!--                 Pause overlay -->
                 <ng-container *ngIf="isPaused && gameStarted">
                     <div [classList]="'pauseOverlay pauseOverlay--${{GAME_DIFFICULTY}}'">
                         <h2>Paused</h2>
@@ -55,6 +56,7 @@
                     </div>
                 </ng-container>
 
+<!--                The actual cells of the game -->
                 <ng-container *ngIf="!isPaused && gameStarted">
                     <div class="minesweeper__cell"
                          *ngFor="let cell of gameCells"
@@ -66,6 +68,7 @@
                     >
 <!--                        [ngClass]="getCellClasses(cell)"-->
 <!--                        [style]="cell.isBomb && cell.isRevealed ? 'background: red' : 'background: inherit'"-->
+
 <!--                        use ngIf instead of z-index to prevent inspection using devTools -->
 <!--                        <b *ngIf="cell.neighborBombs > 0">{{cell.neighborBombs}}</b>-->
                             <b *ngIf="cell.isRevealed && !cell.isBomb && cell.neighborBombs > 0">{{cell.neighborBombs}}</b>

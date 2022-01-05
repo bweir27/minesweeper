@@ -18,8 +18,6 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
 
     difficultyOptions: DIFFICULTY_OPTIONS[] = ['easy', 'medium', 'hard'];
 
-    CELL_SIZE = 40;
-
     /* board dimensions / number of bombs for levels of difficulty taken from https://datagenetics.com/blog/june12012/index.html */
     CELLS_PER_ROW = {
         easy: 8,
@@ -45,12 +43,13 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     gameConfig: GameConfig;
     gameCells: MineSweeperCell[] = [];
     cellHeap: Heap<MineSweeperCell>;
-    game2DCells: MineSweeperCell[][];
     isFirstClick = true;
     gameStarted = false;
     isGameOver = false;
     isGameWon: boolean;
     isPaused = true;
+    // animateBombs = false;
+    animateBombTimeouts = [];
     pauseGameState: any;
     numFlags: number;
     numSafeCellsRevealed = 0;
@@ -61,14 +60,25 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     };
 
     gameElapsedTime = 0;
-    interval;
+    gameClock;
     timeSubscription: any;
+
+    numToWordMap = {
+        0: '',
+        1: 'one',
+        2: 'two',
+        3: 'three',
+        4: 'four',
+        5: 'five',
+        6: 'six',
+        7: 'seven',
+        8: 'eight'
+    };
 
     constructor() {
         this.createGameBoard();
         this.gameElapsedTime = 0;
     }
-
 
     ngOnInit() {
         this.numFlags = 0;
@@ -89,6 +99,10 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         this.numFlags = 0;
         this.numSafeCellsRevealed = 0;
         this.gameElapsedTime = 0;
+
+        // handle game reset before bomb reveal animation over
+        this.animateBombTimeouts.forEach(t => clearTimeout(t));
+
         const board = document.getElementsByClassName('minesweeper__container')[0];
         const scoreboard = document.getElementsByClassName('minesweeper__scoreboard')[0];
         if(board && scoreboard) {
@@ -107,6 +121,7 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         this.gameStarted = true;
         this.numFlags = this.NUM_BOMBS[selectedDifficulty];
         this.gameConfig = this.getGameboardDimensions();
+        this.animateBombTimeouts = [];
 
         this.startTimer();
         this.cellHeap = new Heap<MineSweeperCell>((nodeA, nodeB) => {
@@ -117,19 +132,18 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     }
 
     startTimer() {
-        this.interval = setInterval(() => {
+        this.gameClock = setInterval(() => {
             this.gameElapsedTime++;
         }, 1000);
     }
 
     pauseTimer() {
-        clearInterval(this.interval);
+        clearInterval(this.gameClock);
     }
 
     togglePause() {
         if(!this.gameStarted || this.isGameOver) return;
 
-        //TODO: stop/resume timer
         if(!this.isPaused) {
             this.pauseTimer();
         } else {
@@ -138,18 +152,30 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         this.isPaused = !this.isPaused;
     }
 
+    /**
+     * createGameBoard:
+     */
     createGameBoard(): MineSweeperCell[] {
         const gameSetup = this.getGameboardDimensions();
-        const numCells = gameSetup.numRows * gameSetup.numCols;
-        let positionOptions = shuffle(Array.from(Array(gameSetup.numRows * gameSetup.cellsPerRow).keys()));
+        const numCells = gameSetup.numRows * gameSetup.cellsPerRow; //gameSetup.numRows * gameSetup.numCols;
+        // a shuffled list of numbers in range [0, numCells]
+        let positionOptions = shuffle([...Array(numCells).keys()]);
+
         //create the game cells
-        let safeCells = Array((gameSetup.numRows * gameSetup.numCols) - gameSetup.numBombs).fill({...defaultCell, isBomb: false});
+        let safeCells = Array(numCells - gameSetup.numBombs)
+            .fill({...defaultCell, isBomb: false});
+        // let safeCells = Array((gameSetup.numRows * gameSetup.numCols) - gameSetup.numBombs)
+        //     .fill({...defaultCell, isBomb: false});
         let bombs = Array(gameSetup.numBombs).fill(({...defaultCell, isBomb: true}));
-        //join the safeCells & bombs to become gameCells, shuffle them, and update their index to reflect their position
-        let gameCells = safeCells.concat(bombs)
+
+        //join the safeCells & bombs to become gameCells
+        let gameCells = safeCells
+            .concat(bombs) //join the safeCells & bombs to become gameCells,
+            //shuffle them, and update their index to reflect their position
             .map((c, index) => ({ ...c, id: positionOptions.pop()}))
-            .sort((a, b) => a.id - b.id);
-            // uncomment this for first-click bomb-relocation testing (ensure bombs start in corners)
+            .sort((a, b) => a.id - b.id); // sort the list by cell IDs
+
+            // ** uncomment this for first-click bomb-relocation testing (ensure bombs start in corners) **
             // .map(c => {
             //     if (this.isCorner(c)) return {...c, isBomb: true};
             //     return {...c, isBomb: c.isBomb};
@@ -157,60 +183,75 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         return this.initNeighborBombCount(gameCells);
     }
 
-    initNeighborBombCount(cells: MineSweeperCell[], includeSelf?: boolean): MineSweeperCell[] {
-        let board = [...cells];
+    /**
+     * initNeighborBombCount: for each bomb on the board, set its neighbors' neighborBombs value
+     * @param cells
+     */
+    initNeighborBombCount(cells: MineSweeperCell[]): MineSweeperCell[] {
+        // reset all neighborBombCounts to 0
+        let board = cells.map(c => ({...c, neighborBombs: 0}));
         let bombs = board.filter(c => c.isBomb);
+
+        // technically O(8n) where n = the number of bombs;
+        // and in the worst-case, the cell is not on the edge and all 8 neighbors need checked
         bombs.forEach((b) => {
             let neighbors = this.getCellNeighbors(board, b, this.gameConfig);
-            let keys = Object.values(neighbors);
-            keys.forEach(key => {
+            Object.values(neighbors).forEach(key => {
                 if(key && !key.isBomb) board[key.id].neighborBombs += 1;
             });
         });
         return board;
     }
 
-    initSingleNeighborBombCount(cell: MineSweeperCell, allCells?: any[]): MineSweeperCell {
-        if (!allCells) allCells = this.gameCells;
-        cell.neighborBombs = 0;
-        let neighbors = this.getCellNeighbors(allCells, cell, this.gameConfig);
-        let keys = Object.values(neighbors);
-        keys.reduce((prev, key) => {
-            if(key && key.isBomb) return prev += 1;
-            return prev;
-        }, cell.neighborBombs);
-        return cell;
-    }
-
+    /**
+     * clickCell: The main driving function when a cell is clicked.
+     *      determines how the game board responds to the click
+     * @param { MineSweeperCell }   cell: the Cell that has just been clicked
+     */
     clickCell(cell: MineSweeperCell) {
+        // prevent action if game isn't ongoing
         if(!this.gameStarted || this.isGameOver) return;
+        // ignore cells that are either already revealed or have been flagged
         if(cell.isRevealed || cell.isFlagged) return;
+
+        // prevent clicking on bomb on first turn
         if(this.isFirstClick) {
+            // ensure that the first click results in a cascade effect
             this.gameCells = [...this.ensureFirstClickCascade(this.gameCells, cell)];
             cell = this.gameCells[cell.id];
             this.isFirstClick = false;
         } else if(cell.isBomb) {
             this.displayGameLost(cell);
+            return;
         }
+
         cell.isRevealed = true;
         this.numSafeCellsRevealed++;
+
         if (cell.neighborBombs > 0) {
             let elem = document.getElementById(`${cell.id}`);
+            // update elem classes
             Object.entries(this.getCellClasses(cell))
                 .forEach(([key, value]) => { if (value) elem.classList.add(key); });
             // elem.classList.add(this.mapNumToWord(cell.neighborBombs));
-            this.isGameOver = this.checkGameOver(cell);
-            return;
+        } else {
+            // clicked cell has no adjacent bombs, start recursive reveal cascade
+            this.checkCell(cell);
         }
-        this.checkCell(cell);
         this.isGameOver = this.checkGameOver(cell);
     }
 
-    //check neighboring cells once cell with 0 neighborBombs is clicked
+    /**
+     * checkCell: check neighboring cells once cell with 0 neighborBombs is clicked
+     * @param { MineSweeperCell } cell
+     */
     checkCell(cell: MineSweeperCell) {
+        if(cell.neighborBombs > 0) return; // safeguard
+
         const neighbors = this.getCellNeighbors(this.gameCells, cell, this.gameConfig);
         setTimeout(() => {
             for (let c in neighbors) {
+                // if neighbor isn't a bomb, reveal it (clickCell will handle previously revealed cells)
                 if(neighbors[c] && !neighbors[c].isBomb) {
                     const newCell = this.gameCells[neighbors[c].id];
                     this.clickCell(newCell);
@@ -219,15 +260,26 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         }, this.cascadeAnimationDuration);
     }
 
-
+    /**
+     * ensureFirstClickCascade
+     * @param { MineSweeperCell[] } allCells
+     * @param { MineSweeperCell } clickedCell
+     * @returns: { MineSweeperCell[] } updated GameBoard
+     */
     ensureFirstClickCascade(allCells: MineSweeperCell[], clickedCell: MineSweeperCell): MineSweeperCell[] {
         let cells = [...allCells];
         const clickedCellId = clickedCell.id;
-        const selfIsBomb = cells[clickedCellId].isBomb;
         let checkCorners = true;
 
+        // the neighbors of the clicked cell
         let neighbors = Object.values(this.getCellNeighbors(allCells, clickedCell)).filter(c => !!c);
+        // if any of the neighbors are bombs
         let neighborsHasBomb = neighbors.some(c => c.isBomb);
+
+        const avoidIDs: Set<number> = new Set<number>();
+        avoidIDs.add(clickedCellId);
+        neighbors.forEach(n => avoidIDs.add(n.id));
+
         while(neighborsHasBomb || cells[clickedCellId].isBomb) {
             let node;
             if(cells[clickedCellId].isBomb) {
@@ -237,7 +289,7 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
                 node = neighbors.find(c => c.isBomb);
                 checkCorners = Math.random() < 0.5;
             }
-            cells = this.relocateBomb(cells, node, checkCorners);
+            cells = this.relocateBomb(cells, node, avoidIDs);
 
             neighbors = Object.values(this.getCellNeighbors(cells, cells[clickedCellId])).filter(c => !!c && !c.isFlagged);
             neighborsHasBomb = neighbors.some(c => c.isBomb);
@@ -246,68 +298,32 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * relocateBomb: if a bomb is clicked on the first turn,
-     *      move the bomb to a corner as is [convention](https://web.archive.org/web/20180618103640/http://www.techuser.net/mineclick.html)
-     *      iff the top-left corner is already occupied by a bomb, use top-right, then bottom-right, then bottom-left
-     *      iff all four corners are occupied by bombs (likelihood varies by difficulty), re-initialize the board
-     *      after the bomb has been moved (one way or another),
-     * @param { MineSweeperCell[] } allCells
-     * @param { MineSweeperCell }   clickedCell
-     * @param { boolean }           checkCorners
+     * isCorner
+     * @param { MineSweeperCell}  cell
+     * @param config
+     * @return: whether or not the specified Cell is in the corner of the board
      */
-    private relocateBomb(allCells: MineSweeperCell[], clickedCell: MineSweeperCell, checkCorners = true): MineSweeperCell[] {
-        if(!clickedCell.isBomb || !this.isFirstClick) return allCells;
-
-        let gameBoard = [...allCells];
-        let topLeftCell = gameBoard[0];
-        let topRightCell = gameBoard[this.gameConfig.cellsPerRow - 1];
-        let bottomRightCell = gameBoard[gameBoard.length - 1];
-        let bottomLeftCell = gameBoard[gameBoard.length - this.gameConfig.cellsPerRow];
-        let swapCell;
-        if(checkCorners) {
-            //check top-left corner
-            if(!topLeftCell.isBomb && topLeftCell.id !== clickedCell.id) {
-                swapCell = topLeftCell;
-            } else if(!topRightCell.isBomb && topRightCell.id !== clickedCell.id) {
-                swapCell = topRightCell;
-            } else if(!bottomRightCell.isBomb && bottomRightCell.id !== clickedCell.id) {
-                swapCell = bottomRightCell;
-            } else if(!bottomLeftCell.isBomb && bottomLeftCell.id !== clickedCell.id) {
-                swapCell = bottomLeftCell;
-            }
-        }
-        if(!swapCell) {
-            //none of the corners are viable swaps, swap bomb with random viable (safe) cell
-            /* undefined cell prevented by assumptions that:
-                    a.) there are > 1 safe cells in the game,
-                    b.) and that this segment only runs if isFirstClick)
-             */
-            let viableCells = gameBoard.filter(c => !c.isBomb && c.id !== clickedCell.id && !c.isRevealed);
-            let cellId = Math.floor(Math.random() * viableCells.length);
-            swapCell = viableCells[cellId];
-        }
-        gameBoard = this.swapCells(gameBoard, clickedCell, swapCell);
-        return gameBoard;
-    }
-
-
-    isCorner(cell: MineSweeperCell, config?: GameConfig) {
+    isCorner(cell: MineSweeperCell, config?: GameConfig): boolean {
         if(!config) config = this.getGameboardDimensions();
-        // [topLeft, topRight, bottomRight, bottomLeft]
         const cornerIds = [
-            0,
-            config.cellsPerRow - 1,
-            this.gameCells.length - 1,
-            this.gameCells.length - config.cellsPerRow
+            0,                                          // topLeft
+            config.cellsPerRow - 1,                     // topRight
+            this.gameCells.length - 1,                  // bottomRight
+            this.gameCells.length - config.cellsPerRow  // bottomLeft
         ];
         return cornerIds.includes(cell.id);
     }
 
+    /**
+     * toggleFlag: toggles whether or not a specified cell is flagged
+     * @param cell
+     * @param ev
+     */
     toggleFlag(cell: MineSweeperCell, ev: Event) {
         ev.preventDefault();
         if(this.isGameOver) return;
         if(!cell.isFlagged && this.numFlags > 0) {
-            this.numFlags --;
+            this.numFlags--;
             this.gameCells[cell.id].isFlagged = true;
         } else {
             this.numFlags++;
@@ -318,7 +334,7 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
 
     // ===== end game functions =====
     checkGameOver(cell: MineSweeperCell): boolean {
-        //check for loss
+        //check for loss (bomb clicked)
         if(cell.isBomb && !cell.isFlagged) {
             this.displayGameLost(cell);
             return true;
@@ -328,15 +344,15 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         }
         return false;
     }
+    checkForGameWin(): boolean {
+        return this.numSafeCellsRevealed === this.gameCells.length - this.NUM_BOMBS[this.GAME_DIFFICULTY];
+    }
 
     displayGameLost(cell: MineSweeperCell) {
         this.isGameOver = true;
         this.isGameWon = false;
         console.log('Game Lost');
-        // this.revealBombs(cell);
-        // this.revealBombs2(cell);
         this.animateRevealBombs(cell);
-        // this.revealBombs3(cell);
         this.pauseTimer();
     }
 
@@ -348,58 +364,12 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         this.pauseTimer();
     }
 
-    // show all the bombs that have not already been revealed or flagged
-    /*
-    revealBombs(cell: MineSweeperCell, inspectedCells?: Set<MineSweeperCell>) {
-        if(!cell) return;
-        // if(!cell || cell.passedOver || this.gameCells[cell.id].passedOver) return;
-        if (!inspectedCells) inspectedCells = new Set<MineSweeperCell>();
-        if (inspectedCells.has(cell)) return;
-        if (cell.isBomb) cell.isRevealed = true;
-        cell.passedOver = true;
-        cell.passedNum += 1;
-        inspectedCells.add(cell);
-        const neighbors = this.getUnvisitedNeighbors(this.gameCells, cell, this.gameConfig);
-        let keys = Object.values(neighbors).filter(c => c && !(c.passedOver || this.gameCells[c.id].passedOver));
-        // keys.forEach(k => inspectedCells.add(k));
-
-        keys.forEach(key => {
-            setTimeout(() => {
-                this.revealBombs(this.gameCells[key.id], inspectedCells);
-                // inspectedCells.add(key);
-            }, this.cascadeAnimationDuration);
-        });
-
-        // keys.forEach(k => inspectedCells.add(k));
-        return inspectedCells;
-
-        // setTimeout(() => {
-        //     // keys.filter(c => c && !(c.passedOver || this.gameCells[c.id].passedOver))
-        //     keys
-        //         // .filter(c => c && !(c.passedOver || this.gameCells[c.id].passedOver))
-        //         // .filter(c => !!c)
-        //         // .filter(c => c && !inspectedCells.has(c))
-        //         .forEach(key => {
-        //             // const newCell = this.gameCells[key.id];
-        //             this.revealBombs(this.gameCells[key.id], inspectedCells);
-        //         });
-        // }, 1);
-
-        // this.gameCells.filter(c => c.isBomb && !c.isFlagged).forEach(c => {
-        //     setTimeout(() => { c.isRevealed = true; }, 200);
-        // });
-    }
-     */
-
     animateRevealBombs(cell: MineSweeperCell) {
-        // var heap = this.revealBombs2(cell).clone();
-        // heap.heapify();
         var heap = this.revealBombs3(cell);
         let i = 0;
         let delay = this.cascadeAnimationDuration;
         let interval = 50;
 
-        // while(!heap.isEmpty()) {
         while(heap.length > 0) {
             const c = heap.pop();
             i += 1;
@@ -409,102 +379,26 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         }
     }
 
-    revealBombs2(cell: MineSweeperCell): Heap<any> {
-        const openList = new Heap<any>((nodeA, nodeB) => {
-            return nodeA.dist - nodeB.dist;
-        });
-        var animationList = new Heap<any>((nodeA, nodeB) => {
-            return nodeA.dist - nodeB.dist;
-        });
-        const abs = Math.abs;
-        const SQRT2 = Math.SQRT2;
-        let node: any;
-        var neighbors: any[];
-        var neighbor: any, i, l, x, y, ng;
-
-        let startNode: any = cell;
-        let startPos = this.getCellCoords({cell: cell});
-
-        startNode.g = 0;
-        startNode.dist = 0;
-        startNode.x = startPos.x;
-        startNode.y = startPos.y;
-
-        openList.push(startNode);
-        startNode.passedOver = true;
-        startNode.opened = true;
-
-        // while the open list is not empty
-        while (!openList.isEmpty()) {
-            node = openList.pop();
-            // console.log('node: ', node);
-            node.closed = true;
-
-            // get neighbors of the current node
-            neighbors = Object.values(this.getCellNeighbors(this.gameCells, node, this.gameConfig))
-                .filter(c => !!c);
-
-            for (i = 0, l = neighbors.length; i < l; ++i) {
-                neighbor = neighbors[i];
-
-                if (!neighbor || neighbor.closed) {
-                    continue;
-                }
-
-                neighbor.passedNum += 1;
-
-                let neighborPos = (!!neighbor.x && !!neighbor.y)
-                    ? {x: neighbor.x, y: neighbor.y}
-                    : this.getCellCoords({cell: neighbor});
-
-                x = neighborPos.x;
-                y = neighborPos.y;
-
-                // get the distance between current node and the neighbor
-                // and calculate the next g score
-                ng = node.g + ((x - node.x === 0 || y - node.y === 0) ? 1 : SQRT2);
-
-                // check if the neighbor has not been inspected yet, or
-                // can be reached with smaller cost from the current node
-                if (!neighbor.opened || ng < neighbor.g) {
-                    neighbor.g = ng;
-                    neighbor.x = x;
-                    neighbor.y = y;
-                    neighbor.dist = neighbor.g;
-                    neighbor.parent = node;
-
-                    if (!neighbor.opened) {
-                        openList.push(neighbor);
-                        animationList.push(neighbor);
-                        neighbor.opened = true;
-                    } else {
-                        // the neighbor can be reached with smaller cost.
-                        // Since its f value has been updated, we have to
-                        // update its position in the open list
-                        openList.updateItem(openList.heapArray, neighbor);
-                        animationList.updateItem(animationList.heapArray, neighbor);
-                    }
-                }
-            } // end for each neighbor
-        } // end while not open list empty
-        return animationList;
-    }
-
+    /**
+     * revealBombs3: returns the list of bombs sorted according to their cardinal distance from the startCell
+     *
+     * @param { MineSweeperCell } startCell
+     */
     revealBombs3(startCell: MineSweeperCell): any[] {
         this.reInitCellIdsAndLocation(this.gameCells);
-        return this.gameCells.filter(c => c.isBomb && !c.isFlagged)
+        // returns the list of bombs sorted according to their cardinal distance from the startCell
+        return this.gameCells
+            .filter(c => c.isBomb && !c.isFlagged)
             .sort((a, b) => {
-                let distToA = this.distanceBetweenCells(startCell, a);
-                let distToB = this.distanceBetweenCells(startCell, b);
+                const distToA = this.distanceBetweenCells(startCell, a);
+                const distToB = this.distanceBetweenCells(startCell, b);
                 return distToB - distToA;
             });
     }
-    checkForGameWin(): boolean {
-        return this.numSafeCellsRevealed === this.gameCells.length - this.NUM_BOMBS[this.GAME_DIFFICULTY];
-    }
 
-    //helpers
-    getGameboardDimensions():  GameConfig {
+
+    // === helpers ===
+    private getGameboardDimensions(): GameConfig {
         return {
             numRows: this.NUM_ROWS[this.GAME_DIFFICULTY],
             numCols: this.CELLS_PER_ROW[this.GAME_DIFFICULTY],
@@ -513,7 +407,13 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         };
     }
 
-    getCellNeighbors(allCells: MineSweeperCell[], cell: MineSweeperCell, config?: GameConfig) {
+    /**
+     * getCellNeighbors: returns the list of cells that are adjacent to
+     * @param { MineSweeperCell[] } allCells
+     * @param { MineSweeperCell }   cell
+     * @param { GameConfig }        config
+     */
+    private getCellNeighbors(allCells: MineSweeperCell[], cell: MineSweeperCell, config?: GameConfig) {
         if(!config) config = this.getGameboardDimensions();
         let cellList = [...allCells];
         return {
@@ -535,23 +435,26 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
      * (x+1) - x = 1
      * (y+1) - y = cellsPerRow
      */
-    getCellAt(x: number, y: number): any {
+    private getCellAt(x: number, y: number): any {
         const index = (this.gameConfig.cellsPerRow * y) + x;
         return this.gameCells[index];
     }
 
-    //    y = floor(index / cellsPerRow)
-    //    x = index % cellsPerRow
-    getCellCoords(args: {cell?: MineSweeperCell, index?: number}): {x: number, y: number} {
+    /**
+     * getCellCoords: calculates and returns the (x,y) coordinates of a given cell
+     * @param args
+     */
+    private getCellCoords(args: {cell?: MineSweeperCell, index?: number}): {x: number, y: number} {
         let {cell, index} = args;
-        if (!args.index && !args.cell) {
-            console.log('index: ', args.index);
-            index = 0;
-            // throw new Error('must provide either an index or a cell');
+        if (args.index === undefined && !args.cell === undefined) {
+            console.error('must provide either an index or a cell', args);
+            throw new Error('must provide either an index or a cell');
         }
         if (index && cell && index !== cell.id) throw new Error('index and cell.id mismatch');
         if (!index && cell) index = cell.id;
 
+        //    y = floor(index / cellsPerRow)
+        //    x = index % cellsPerRow
         const x = index > this.gameConfig.cellsPerRow
             ? index % this.gameConfig.cellsPerRow
             : index;
@@ -563,78 +466,100 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         };
     }
 
-    revealCell(cell: any, delay?: number) {
-        if(!delay) delay = 0;
+    /**
+     * revealCell: reveals a Cell after a specified delay
+     * @param cell
+     * @param delay
+     */
+    private revealCell(cell: any, delay = 0) {
         const { id } = cell;
-        setTimeout(() => {
+        const timeId = setTimeout(() => {
             this.gameCells[id].isRevealed = true;
         }, delay);
+        if(cell.isBomb) {
+            this.animateBombTimeouts.push(timeId);
+        }
     }
 
-    /*
-    getUnvisitedNeighbors(allCells: MineSweeperCell[], cell: MineSweeperCell, config?: GameConfig) {
-        if(!config) config = this.getGameboardDimensions();
-        let cellList = [...allCells];
-        const north     = getCellNorthOf(cellList, cell, config);
-        const south     = getCellSouthOf(cellList, cell, config);
-        const east      = getCellEastOf(cellList, cell, config);
-        const west      = getCellWestOf(cellList, cell, config);
-        const northeast = getCellEastOf(cellList, getCellNorthOf(cellList, cell, config), config);
-        const southeast = getCellEastOf(cellList, getCellSouthOf(cellList, cell, config), config);
-        const southwest = getCellWestOf(cellList, getCellSouthOf(cellList, cell, config), config);
-        const northwest = getCellWestOf(cellList, getCellNorthOf(cellList, cell, config), config);
-
-        return {
-            north: (north && !north.passedOver ? north : undefined),
-            south: (south && !south.passedOver ? south : undefined),
-            east: (east && !east.passedOver ? east : undefined),
-            west: (west && !west.passedOver ? west : undefined),
-            northeast: (northeast && !northeast.passedOver ? northeast : undefined),
-            southeast: (southeast && !southeast.passedOver ? southeast : undefined),
-            southwest: (southwest && !southwest.passedOver ? southwest : undefined),
-            northwest: (northwest && !northwest.passedOver ? northwest : undefined)
-        };
-    }
+    /**
+     * relocateBomb: if a bomb is clicked on the first turn,
+     *      move the bomb to a corner as is [convention](https://web.archive.org/web/20180618103640/http://www.techuser.net/mineclick.html)
+     *      iff the top-left corner is already occupied by a bomb, use top-right, then bottom-right, then bottom-left
+     *      iff all four corners are occupied by bombs (likelihood varies by difficulty), re-initialize the board
+     *      after the bomb has been moved (one way or another),
+     * @param { MineSweeperCell[] } allCells
+     * @param { MineSweeperCell }   clickedCell
+     * @param { Set<number> }       avoidIds: invalid swap destinations
      */
+    private relocateBomb(allCells: MineSweeperCell[], clickedCell: MineSweeperCell, avoidIds: Set<number>): MineSweeperCell[] {
+        if(!clickedCell.isBomb || !this.isFirstClick) return allCells;
 
-    swapCells(allCells: MineSweeperCell[], a: MineSweeperCell, b: MineSweeperCell): any[] {
+        let gameBoard = allCells;
+        let swapCell: MineSweeperCell;
+
+        const topLeftCell = gameBoard[0];
+        const topRightCell = gameBoard[this.gameConfig.cellsPerRow - 1];
+        const bottomRightCell = gameBoard[gameBoard.length - 1];
+        const bottomLeftCell = gameBoard[gameBoard.length - this.gameConfig.cellsPerRow];
+
+        //check top-left corner
+        if(!topLeftCell.isBomb && topLeftCell.id !== clickedCell.id) {
+            swapCell = topLeftCell;
+        } else if(!topRightCell.isBomb && topRightCell.id !== clickedCell.id) {
+            swapCell = topRightCell;
+        } else if(!bottomRightCell.isBomb && bottomRightCell.id !== clickedCell.id) {
+            swapCell = bottomRightCell;
+        } else if(!bottomLeftCell.isBomb && bottomLeftCell.id !== clickedCell.id) {
+            swapCell = bottomLeftCell;
+        }
+
+        if(!swapCell) {
+            //none of the corners are viable swaps, swap bomb with random viable (safe) cell
+            /* undefined cell prevented by assumptions that:
+                    a.) there are > 1 safe cells in the game,
+                    b.) this segment only runs if isFirstClick
+             */
+            let viableCells = gameBoard
+                .filter(c => !c.isBomb && c.id !== clickedCell.id && !c.isRevealed && !avoidIds.has(c.id));
+            let cellId = Math.floor(Math.random() * viableCells.length);
+            swapCell = viableCells[cellId];
+        }
+        // gameBoard = this.swapCells(gameBoard, clickedCell, swapCell);
+        return this.swapCells(gameBoard, clickedCell, swapCell);
+    }
+
+    /**
+     * swapCells: swaps the positions of two MineSweeperCells
+     * @param { MineSweeperCell[] } allCells
+     * @param { MineSweeperCell}    a
+     * @param { MineSweeperCell }   b
+     */
+    private swapCells(allCells: MineSweeperCell[], a: MineSweeperCell, b: MineSweeperCell): MineSweeperCell[] {
+        // perform the swap
         [allCells[a.id], allCells[b.id]] = [allCells[b.id], allCells[a.id]];
-        allCells = this.reInitCellIdsAndLocation(allCells);
-        // let neighbors = Object.values(this.getCellNeighbors(allCells, allCells[a.id]))
-        //     .push(Object.values(this.getCellNeighbors(allCells, allCells[b.id])));
-
-        // this.initSingleNeighborBombCount(allCells[a.id], allCells);
-        // this.initSingleNeighborBombCount(allCells[b.id], allCells);
-        // return allCells;
 
         // reset the ids and neighborBombCount of each cell
         allCells = allCells.map((c, index) => {
             const { x, y } = this.getCellCoords({index: index});
-            return Object.assign(c, {
+            return {
                 ...c,
                 id: index,
                 neighborBombs: 0,
                 x: x,
                 y: y
-            });
+            };
         });
         return this.initNeighborBombCount(allCells);
     }
 
-    mapNumToWord(num: number) {
-        return {
-            0: '',
-            1: 'one',
-            2: 'two',
-            3: 'three',
-            4: 'four',
-            5: 'five',
-            6: 'six',
-            7: 'seven',
-            8: 'eight'
-        }[num];
+    mapNumToWord(num: number): string {
+        return this.numToWordMap[num];
     }
 
+    /**
+     * getCellClasses: determines and returns the CSS classes for a specified cell
+     * @param cell
+     */
     getCellClasses(cell: MineSweeperCell) {
         if(!cell.isRevealed) return {};
         const numClassName = this.mapNumToWord(cell.neighborBombs);
@@ -647,12 +572,13 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         return baseClasses;
     }
 
+    /**
+     * getWelcomeMessageFontSize
+     *      We use the height of the board to calculate the font size because we know for
+     *      "easy" board, width == height, and we want the font size to be the same for
+     *      "medium" and "hard" boards, which have differing widths, but equal heights
+     */
     getWelcomeMessageFontSize() {
-        /*
-            We use the height of the board to calculate the font size because we know for
-            "easy" board, width == height, and we want the font size to be the same for
-            "medium" and "hard" boards, which have differing widths, but equal heights
-         */
         const board = document.getElementById('gameContainer');
         const boardHeight = window.getComputedStyle(board).getPropertyValue('height');
         const parsedHeightVal = Number(boardHeight.split(new RegExp(/[A-Z]/, 'gi'))[0]);
@@ -662,19 +588,12 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         return `font-size: ${computedFontSize}px;`;
     }
 
-    isSorted(cells: any[]): boolean {
-        return !cells.some((c, index) => {
-            if (c.id !== index) console.log('out of place: ', c);
-            return c.id !== index;
-        });
-    }
-
     /**
      * reInitCellIdsAndLocation:
      * 0(n)
      * @param cells
      */
-    reInitCellIdsAndLocation(cells: any[]): any[] {
+    private reInitCellIdsAndLocation(cells: any[]): any[] {
         return cells.map((c, index) => {
             const coords = this.getCellCoords({index: index || 0});
             return {
@@ -686,12 +605,18 @@ export class MineSweeperComponent implements OnInit, OnDestroy {
         });
     }
 
-    distanceBetweenCells(cellA: MineSweeperCell, cellB: MineSweeperCell): number {
+    /**
+     * distanceBetweenCells: calculates and returns the cardinal distance between two game Cells
+     * @param { MineSweeperCell }   cellA
+     * @param { MineSweeperCell }   cellB
+     * @returns { number } the cardinal distance between the two cells
+     */
+    private distanceBetweenCells(cellA: MineSweeperCell, cellB: MineSweeperCell): number {
         let coordsA = this.getCellCoords({cell: cellA});
         let coordsB = this.getCellCoords({cell: cellB});
 
         let x = coordsA.x - coordsB.x;
         let y = coordsA.y - coordsB.y;
-        return Math.sqrt((x * x) + (y * y));
+        return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
     }
 }
