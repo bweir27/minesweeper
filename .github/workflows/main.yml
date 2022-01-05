@@ -77,20 +77,20 @@ jobs:
             - run: git init
             - run: git config user.name "GitHub CI/CD"
             - run: git config user.email "bweir27@gmail.com"
-            - name: "Deploy the web dyno"
-              uses: "akhileshns/heroku-deploy@v3.12.12"
-              with:
-                docker_heroku_process_type: web
-                heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-                heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-                heroku_email: ${{ secrets.HEROKU_EMAIL }}
-                justlogin: true
             - run: git remote add heroku https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}-devel.git
             - run: git add .
             - run: git reset -- client/stats.json
             - run: git commit -m "GitHub CI Build"
             - name: Install Heroku Cli
               run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-            - run: |
+           - name: "Deploy the web dyno"
+             uses: "akhileshns/heroku-deploy@v3.12.12"
+             with:
+               docker_heroku_process_type: web
+               heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+               heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+               heroku_email: ${{ secrets.HEROKU_EMAIL }}
+               justlogin: true
+             run: |
                 heroku container:login
                 git push -f heroku master
