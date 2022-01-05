@@ -70,12 +70,13 @@ jobs:
               uses: actions/download-artifact@v2
               with:
                   name: my-artifact
+            - run: git init
+            - run: git config user.name "GitHub CI/CD"
+            - run: git config user.email "bweir27@gmail.com"
+            - run: git remote add heroku https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}-devel.git
+            - run: git add .
+            - run: git reset -- client/stats.json
+            - run: git commit -m "GitHub CI Build"
             - run: |
-                git init
-                git config user.name "GitHub CI/CD"
-                git config user.email "bweir27@gmail.com"
-                git remote add heroku https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}-devel.git
-                git add .
-                git reset -- client/stats.json
-                git commit -m "GitHub CI Build"
+                heroku login
                 git push -f heroku master
