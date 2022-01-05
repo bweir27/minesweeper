@@ -78,7 +78,19 @@ jobs:
             - run: git init
             - run: git config user.name "GitHub CI/CD"
             - run: git config user.email "bweir27@gmail.com"
-            - run: git remote add heroku https://heroku:${{secrets.HEROKU_API_KEY}}@git.heroku.com/brianweirdevminesweeper-devel.git
+            - name: Login to Heroku Container registry
+              env:
+                  HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+              run: heroku container:login
+            - name: Build and push
+              env:
+                  HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+              run: heroku container:push -a ${{ secrets.HEROKU_APP_NAME }} web
+            - name: Release
+              env:
+                 HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+              run: heroku container:release -a ${{ secrets.HEROKU_APP_NAME }} web
+            - run: git remote add heroku https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}-devel.git
             - run: git add .
             - run: git reset -- client/stats.json
             - run: git commit -m "GitHub CI Build"
