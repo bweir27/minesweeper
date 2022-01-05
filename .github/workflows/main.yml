@@ -78,10 +78,10 @@ jobs:
                   name: my-artifact
             - name: Install Heroku Cli
               run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-            - name: Login to Heroku Container registry
-              env:
-                HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-              run: heroku container:login
+#            - name: Login to Heroku Container registry
+#              env:
+#                HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+#              run: heroku container:login
             - run: git init
             - run: git config user.name "GitHub CI/CD"
             - run: git config user.email "${{ secrets.HEROKU_EMAIL}}"
@@ -99,6 +99,17 @@ jobs:
 #                heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
 #                heroku_email: ${{ secrets.HEROKU_EMAIL }}
 #                justlogin: true
-            - run: |
-                heroku container:login
-                git push -f heroku master
+            -   name: push to heroku
+                env:
+                    HEROKU_REGISTRY_URL: registry.heroku.com
+                    HEROKU_TOKEN: ${{ secrets.HEROKU_TOKEN }}
+                run: |
+                    docker login --username=_ --password $HEROKU_TOKEN $HEROKU_REGISTRY_URL
+                    export HEROKU_API_KEY=$HEROKU_TOKEN
+                    heroku container:login
+                    heroku container:push web --app ${{secrets.HEROKU_APP_NAME}}
+                    heroku container:release web --app ${{secrets.HEROKU_APP_NAME}}
+                    heroku ps:scale web=1 --app ${{secrets.HEROKU_APP_NAME}}
+#            - run: |
+#                heroku container:login
+#                git push -f heroku master
