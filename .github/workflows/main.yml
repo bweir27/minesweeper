@@ -81,8 +81,8 @@ jobs:
             - run: git add .
             - run: git reset -- client/stats.json
             - run: git commit -m "GitHub CI Build"
-            - name: Install Heroku Cli
-              run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+#            - name: Install Heroku Cli
+#              run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 #            - name: "Deploy the web dyno"
 #              uses: "akhileshns/heroku-deploy@v3.12.12"
 #              with:
@@ -91,6 +91,4 @@ jobs:
 #                heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
 #                heroku_email: ${{ secrets.HEROKU_EMAIL }}
 #                justlogin: true
-            - run: |
-                heroku login
-                git push -f heroku master
+            - run: git push -f heroku master
