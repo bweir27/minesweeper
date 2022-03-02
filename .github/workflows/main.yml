@@ -76,10 +76,10 @@ jobs:
               uses: actions/download-artifact@v2
               with:
                   name: my-artifact
+            - name: working dir
+              run: pwd
             - name: test ls
               run: ls
-            - name: cd to artifact
-              run: cd /minesweeper/minesweeper
             - name: Install Heroku Cli
               run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 #            - name: Login to Heroku Container registry
