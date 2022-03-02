@@ -95,25 +95,26 @@ jobs:
             - run: git commit -m "GitHub CI Build"
 #            - name: Install Heroku Cli
 #              run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-#            - name: "Deploy the web dyno"
-#              uses: "akhileshns/heroku-deploy@v3.12.12"
-#              with:
-#                docker_heroku_process_type: web
-#                heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-#                heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-#                heroku_email: ${{ secrets.HEROKU_EMAIL }}
+            - name: "Deploy the web dyno"
+              uses: "akhileshns/heroku-deploy@v3.12.12"
+              with:
+                docker_heroku_process_type: web
+                heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+                heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+                heroku_email: ${{ secrets.HEROKU_EMAIL }}
+                usedocker: true
 #                justlogin: true
-            -   name: push to heroku
-                env:
-                    HEROKU_REGISTRY_URL: registry.heroku.com
-                    HEROKU_TOKEN: ${{ secrets.HEROKU_TOKEN }}
-                run: |
-                    docker login --username=_ --password $HEROKU_TOKEN $HEROKU_REGISTRY_URL
-                    export HEROKU_API_KEY=$HEROKU_TOKEN
-                    heroku container:login
-                    heroku container:push web --app ${{secrets.HEROKU_APP_NAME}}
-                    heroku container:release web --app ${{secrets.HEROKU_APP_NAME}}
-                    heroku ps:scale web=1 --app ${{secrets.HEROKU_APP_NAME}}
+#            -   name: push to heroku
+#                env:
+#                    HEROKU_REGISTRY_URL: registry.heroku.com
+#                    HEROKU_TOKEN: ${{ secrets.HEROKU_TOKEN }}
+#                run: |
+#                    docker login --username=_ --password $HEROKU_TOKEN $HEROKU_REGISTRY_URL
+#                    export HEROKU_API_KEY=$HEROKU_TOKEN
+#                    heroku container:login
+#                    heroku container:push web --app ${{secrets.HEROKU_APP_NAME}}
+#                    heroku container:release web --app ${{secrets.HEROKU_APP_NAME}}
+#                    heroku ps:scale web=1 --app ${{secrets.HEROKU_APP_NAME}}
 #            - run: |
 #                heroku container:login
 #                git push -f heroku master
