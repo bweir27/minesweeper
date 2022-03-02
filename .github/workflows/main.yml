@@ -95,7 +95,7 @@ jobs:
             - run: git commit -m "GitHub CI Build"
             - name: Install Heroku Cli
               run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-            - run: git push heroku main
+            - run: git push -f heroku master
 #            - name: "Deploy the web dyno"
 #              uses: "akhileshns/heroku-deploy@v3.12.12"
 #              with:
