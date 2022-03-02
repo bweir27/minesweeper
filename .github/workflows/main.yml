@@ -93,8 +93,8 @@ jobs:
             - run: git add .
             - run: git reset -- client/stats.json
             - run: git commit -m "GitHub CI Build"
-#            - name: Install Heroku Cli
-#              run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+            - name: Install Heroku Cli
+              run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 #            - name: "Deploy the web dyno"
 #              uses: "akhileshns/heroku-deploy@v3.12.12"
 #              with:
@@ -116,5 +116,5 @@ jobs:
 #                    heroku container:release web --app ${{secrets.HEROKU_APP_NAME}}
 #                    heroku ps:scale web=1 --app ${{secrets.HEROKU_APP_NAME}}
             - run: |
-                heroku container:login
-                git push -f heroku master
+#                heroku container:login
+                git push heroku main
