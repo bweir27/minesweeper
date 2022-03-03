@@ -115,7 +115,6 @@ jobs:
 #                    heroku container:push web --app ${{secrets.HEROKU_APP_NAME}}
 #                    heroku container:release web --app ${{secrets.HEROKU_APP_NAME}}
 #                    heroku ps:scale web=1 --app ${{secrets.HEROKU_APP_NAME}}
-            - run: |
-                heroku container:login
-                git push heroku main
+            - run: heroku container:login
+            - run: git push heroku main
 
