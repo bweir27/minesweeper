@@ -18,6 +18,9 @@ env:
     HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
     APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
     HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
+    DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+    DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN}}
+
 
 #defaults:
 #    run:
