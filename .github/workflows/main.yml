@@ -85,7 +85,7 @@ jobs:
 #              env:
 #                HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 #              run: heroku container:login
-#            - run: git init
+            - run: git init
 #            - run: git config user.name "GitHub CI/CD"
 #            - run: git config user.email "${{ secrets.HEROKU_EMAIL}}"
 #            - run: git remote add heroku https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}-devel.git
