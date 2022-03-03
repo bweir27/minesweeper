@@ -77,10 +77,6 @@ jobs:
               uses: actions/download-artifact@v2
               with:
                   name: my-artifact
-#            - name: working dir
-#              run: pwd
-#            - name: test ls
-#              run: ls
 #            - name: Install Heroku Cli
 #              run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 #            - name: Login to Heroku Container registry
@@ -97,10 +93,7 @@ jobs:
             - name: Install Heroku Cli
               run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
             - name: Login to Docker Hub
-              uses: docker/login-action@v1
-              with:
-                username: ${{ secrets.DOCKER_HUB_USERNAME }}
-                password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+              run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 #            - run: git push -f heroku master
             - name: "Deploy the web dyno"
               uses: "akhileshns/heroku-deploy@v3.12.12"
